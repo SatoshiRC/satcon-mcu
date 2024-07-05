@@ -49,8 +49,6 @@ extern "C" {
 
 /* USER CODE END EM */
 
-void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
-
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
 
@@ -65,6 +63,8 @@ void Error_Handler(void);
 #define XBee_RX_GPIO_Port GPIOA
 #define SBUS_Pin GPIO_PIN_3
 #define SBUS_GPIO_Port GPIOA
+#define ICM20948_IT_Pin GPIO_PIN_1
+#define ICM20948_IT_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 
