@@ -7,9 +7,8 @@
 
 #include "wrapper.hpp"
 
-#include "ICM20948/ICM20948_USER.h"
-#include "elapsedTimer/elapsedTimer.h"
-#include "AttitudeEstimation.h"
+#include "common.h"
+
 #include "tim.h"
 #include "usart.h"
 #include "dma.h"
@@ -17,8 +16,6 @@
 #include <string>
 #include <array>
 #include <bitset>
-
-extern DMA_HandleTypeDef hdma_usart3_tx;
 
 /*
  * param:
@@ -28,11 +25,7 @@ extern DMA_HandleTypeDef hdma_usart3_tx;
 const uint8_t messageLevel = 0;
 void message(std::string str, uint8_t level = 0);
 
-ICM20948_HAL *icm20948 = new ICM20948_HAL(&hi2c2, ICM20948::Address::LOW);
-ICM20948_USER<ICM20948_HAL> icm20948User(icm20948);
 
-ElapsedTimer *elapsedTimer = new ElapsedTimer(&htim5, 1000000);
-AttitudeEstimation attitudeEstimate(elapsedTimer);
 
 std::array<float, 3> gyroValue;
 std::array<float, 3> AccelValue;
