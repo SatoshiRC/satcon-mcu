@@ -57,7 +57,7 @@ void init(){
 	 */
 	uint8_t whoami = icm20948->whoami();;
 	for(uint8_t n=0; n<10 && whoami!=0xea; n++){
-		message("Error : Icm20948 is not detected \n retrying...",1);
+		message("Error : Icm20948 is not detected \n retrying...",2);
 		HAL_I2C_DeInit(&hi2c2);
 		HAL_I2C_Init(&hi2c2);
 		icm20948->changeUserBank(ICM20948::REGISTER::BANK::BANK0);
@@ -65,19 +65,12 @@ void init(){
 		HAL_Delay(100);
 		whoami = icm20948->whoami();
 	}
-	if(icm20948->whoami() == 0xea){
+	if(whoami == 0xea){
 		message("Icm20948 is detected",1);
 		icm20948User.init();
 
 		CLEAR_MASK_ICM20948_INTERRUPT();
 
-		for(uint8_t n=0; n<28; n++){
-			uint8_t tmp;
-			HAL_I2C_Mem_Read(&hi2c2, ((uint8_t)ICM20948::Address::LOW)<<1, n, 1, &tmp, 1, 100);
-			HAL_Delay(1);
-			bitset_1byte = tmp;
-			message("Resister read " + std::to_string(n) + " : " + bitset_1byte.to_string(),0);
-		}
 	}else{
 		message("Error : Icm20948 is not detected",1);
 	}
