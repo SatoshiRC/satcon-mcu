@@ -13,6 +13,7 @@
 #include "tim.h"
 #include "usart.h"
 #include "dma.h"
+#include "gpio.h"
 #include <string>
 #include <array>
 #include <bitset>
@@ -39,8 +40,7 @@ std::array<float, 3> AccelValue;
 bool isInitializing = true;
 
 void init(){
-	//disable GPIO interrupt by ICM20948
-	EXTI->RTSR &= ~(0b1<<1);
+	SET_MASK_ICM20948_INTERRUPT();
 
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);
 
@@ -76,8 +76,7 @@ void init(){
 		message("Icm20948 is detected",1);
 		icm20948User.init();
 
-		//enable GPIO interrupt by ICM20948
-		EXTI->RTSR ^= (0b1<<1);
+		CLEAR_MASK_ICM20948_INTERRUPT();
 
 		for(uint8_t n=0; n<28; n++){
 			uint8_t tmp;

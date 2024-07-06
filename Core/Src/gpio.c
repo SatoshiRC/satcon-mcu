@@ -93,5 +93,12 @@ void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 2 */
+void SET_MASK_ICM20948_INTERRUPT(){
+	EXTI->IMR &= ~(0b1<<ICM20948_IT_Pin);
+}
 
+void CLEAR_MASK_ICM20948_INTERRUPT(){
+	EXTI->RTSR ^= (0b1<<ICM20948_IT_Pin);
+
+}
 /* USER CODE END 2 */

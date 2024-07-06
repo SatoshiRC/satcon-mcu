@@ -39,7 +39,8 @@ extern "C" {
 void MX_GPIO_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-
+void SET_MASK_ICM20948_INTERRUPT();
+void CLEAR_MASK_ICM20948_INTERRUPT();
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus
