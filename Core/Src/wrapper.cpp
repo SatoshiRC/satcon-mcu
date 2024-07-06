@@ -37,9 +37,9 @@ AttitudeEstimation attitudeEstimate(elapsedTimer);
 std::array<float, 3> gyroValue;
 std::array<float, 3> AccelValue;
 
-bool isInitializing = true;
-
 void init(){
+	bool isInitializing = true;
+
 	SET_MASK_ICM20948_INTERRUPT();
 
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);
