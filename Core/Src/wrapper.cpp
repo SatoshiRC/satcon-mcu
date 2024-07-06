@@ -45,18 +45,11 @@ void init(){
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);
 
 	std::bitset<8> bitset_1byte = 0;
-	/*
-	 * start elapsed Timer and check its frequency.
-	 */
-	elapsedTimer->start();
-	HAL_Delay(100);
-	elapsedTimer->update();
-	if(std::pow(elapsedTimer->getTimeMS()-100,2)>1){
-		message("Debug : elapsedTimer->getTimeMS() " + std::to_string((int)elapsedTimer->getTimeMS()));
-		message("Error : elapsedTimer configuration is not correct",2);
-	}else{
-		message("ElapsedTimer is working",1);
+
+	if(elapsedTimer->selfTest() == false){
+		message("ERROR : elapsed timer freaquency is not correct",2);
 	}
+	elapsedTimer->start();
 
 	/*
 	 * communication check with icm20948
