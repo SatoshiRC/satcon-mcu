@@ -65,7 +65,6 @@ void Error_Handler(void);
 #define SBUS_GPIO_Port GPIOA
 #define ICM20948_IT_Pin GPIO_PIN_1
 #define ICM20948_IT_GPIO_Port GPIOB
-#define ICM20948_IT_EXTI_IRQn EXTI1_IRQn
 
 /* USER CODE BEGIN Private defines */
 

@@ -12,6 +12,8 @@
 #include "elapsedTimer/elapsedTimer.h"
 #include "AttitudeEstimation.h"
 
+#include "tim.h"
+
 extern DMA_HandleTypeDef hdma_usart3_tx;
 
 ICM20948_HAL *icm20948 = new ICM20948_HAL(&hi2c2, ICM20948::Address::LOW);
