@@ -8,6 +8,8 @@
 #ifndef INC_TWO_DOF_PID_H_
 #define INC_TWO_DOF_PID_H_
 
+#include <cmath>
+
 template<class T = float>
 struct TWO_DOF_PID_PARAM{
 	T ffGain = 0;

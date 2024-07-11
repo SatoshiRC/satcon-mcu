@@ -29,8 +29,8 @@ T TWO_DOF_PID<T>::controller(T reference, T state){
 		res = upperLimit;
 	}
 	T tmp = antiWindup / param.pGain;
-	if(tmp == inf || tmp == -inf || tmp == nan){
-		integral -= antiWindup;
+	if(std::isfinite(tmp)){
+		integral -= tmp;
 	}else{
 		integral -= antiWindup;
 	}
