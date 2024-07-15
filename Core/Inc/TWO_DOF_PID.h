@@ -12,12 +12,19 @@
 
 template<class T = float>
 struct TWO_DOF_PID_PARAM{
-	T ffGain = 0;
-	T pGain = 0;
-	T iGain = 0;
-	T dGain = 0;
-	T upperControlLimit = -1;
-	T lowerControlLimit = 1;
+	T ffGain;
+	T pGain;
+	T iGain;
+	T dGain;
+	T upperControlLimit;
+	T lowerControlLimit;
+
+	TWO_DOF_PID_PARAM(T ffGain = 0,
+	T pGain = 0, T iGain = 0, T dGain = 0,
+	T upperControlLimit = -1, T lowerControlLimit = 1,)
+	:ffGain(ffGain), pGain(pGain), iGain(iGain), dGain(dGain),
+	upperControlLimit(upperControlLimit),lowerControlLimit(lowerControlLimit)
+	{}
 };
 
 template<class T = float>
