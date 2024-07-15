@@ -16,14 +16,15 @@
 #include <string>
 #include <array>
 #include <bitset>
+#include <exception>
 
 /*
  * param:
  * param1(str):set message in std::string
  * param2(level):set message level. Planning to use message control.(For error = 0 and system message = 1, runtime message = 2, debug = 3)
  */
-const uint8_t messageLevel = 0;
-void message(std::string str, uint8_t level = 0);
+const uint8_t messageLevel = 3;
+void message(std::string str, uint8_t level = 3);
 
 
 
@@ -78,20 +79,18 @@ void loop(){
 
 void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c){
 	if(hi2c == &hi2c2){
-		message("I2C master rx complete callback");
+		message("I2C master rx complete callback",2);
 		attitudeEstimate.updateIMU();
 	}
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 	if(GPIO_Pin == GPIO_PIN_1){
-//		message("GPIO_EXIT");
 		if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1) == GPIO_PIN_SET){
-//			message("Icm20948 interrupt");
+			message("ICM20948 interrupt",2);
 			attitudeEstimate.updateTime();
 			Vector3D<float> accel;
 			Vector3D<float> gyro;
-//			icm20948->get6ValueBurst(accel, gyro);
 			icm20948->readIMU();
 			icm20948->getAccel(accel);
 			icm20948->getGyro(gyro);
@@ -100,30 +99,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 			attitudeEstimate.getGyroValue() = gyro;
 
 			attitudeEstimate.updateIMU();
-
-			if(hdma_usart3_tx.State == HAL_DMA_StateTypeDef::HAL_DMA_STATE_READY){
-				auto attitude = attitudeEstimate.getAttitude();
-				const uint8_t bufSize = 18;
-				int8_t buf[bufSize];
-				buf[bufSize - 2] = '\r';
-				buf[bufSize - 1] = '\n';
-				for(uint8_t n=0; n<4; n++){
-					buf[n] = std::roundf(attitude[n]*100.0);
-				}
-				auto rawAccel = icm20948->getRawAccel();
-				for(uint8_t n=0; n<3; n++){
-					buf[4 + n*2] = rawAccel.data()[n]>>8;
-					buf[4 + n*2 + 1] = rawAccel.data()[n]>>8 & 0xff;
-				}
-				auto rawGyro = icm20948->getRawGyro();
-				for(uint8_t n=0; n<3; n++){
-					buf[10 + n*2] = rawGyro.data()[n]>>8;
-					buf[10 + n*2 + 1] = rawGyro.data()[n]>>8 & 0xff;
-				}
-				HAL_UART_Transmit_DMA(&huart4, (uint8_t *)buf, sizeof(buf));
-			}
-		}else{
-
 		}
 	}
 }
@@ -135,9 +110,9 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
 }
 
 void message(std::string str, uint8_t level){
-	if(level >= messageLevel){
+	if(level <= messageLevel){
 		str += "\n";
-//		HAL_UART_Transmit_DMA(&huart3, (uint8_t *)str.c_str(), str.length());
+		HAL_UART_Transmit_DMA(&huart3, (uint8_t *)str.c_str(), str.length());
 	}
 	return;
 }
