@@ -20,7 +20,7 @@
 /*
  * param:
  * param1(str):set message in std::string
- * param2(level):set message level. Planning to use message control.(For debug = 0 and system message = 1, error = 2)
+ * param2(level):set message level. Planning to use message control.(For error = 0 and system message = 1, runtime message = 2, debug = 3)
  */
 const uint8_t messageLevel = 0;
 void message(std::string str, uint8_t level = 0);
