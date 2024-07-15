@@ -48,25 +48,14 @@ void init(){
 	 * communication check with icm20948
 	 * initialize icm20948
 	 */
-	uint8_t whoami = icm20948->whoami();;
-	for(uint8_t n=0; n<10 && whoami!=0xea; n++){
-		message("Error : Icm20948 is not detected \n retrying...",2);
-		HAL_I2C_DeInit(&hi2c2);
-		HAL_I2C_Init(&hi2c2);
-		icm20948->changeUserBank(ICM20948::REGISTER::BANK::BANK0);
-		icm20948->reset();
-		HAL_Delay(100);
-		whoami = icm20948->whoami();
+	try{
+		icm20948User.confirmConnection();
+	}catch(std::runtime_error &e){
+		message("Error : Icm20948 is not detected",2);
 	}
-	if(whoami == 0xea){
-		message("Icm20948 is detected",1);
-		icm20948User.init();
-
-		CLEAR_MASK_ICM20948_INTERRUPT();
-
-	}else{
-		message("Error : Icm20948 is not detected",1);
-	}
+	icm20948User.init();
+	CLEAR_MASK_ICM20948_INTERRUPT();
+	message("ICM20948 is initialized");
 
 	while(isInitializing){
 		isInitializing = !attitudeEstimate.isInitialized();
