@@ -21,10 +21,10 @@ T TWO_DOF_PID<T>::controller(T reference, T state){
 	const auto lowerLimit = param.lowerControlLimit;
 	const auto upperLimit = param.upperControlLimit;
 	T antiWindup = 0;
-	if(lowerLimit != 0 && res < lowerLimit){
+	if(lowerLimit != 1 && res < lowerLimit){
 		antiWindup = res - lowerLimit;
 		res = lowerLimit;
-	}else if(upperLimit != 0 && res > upperLimit){
+	}else if(upperLimit != -1 && res > upperLimit){
 		antiWindup = res - upperLimit;
 		res = upperLimit;
 	}

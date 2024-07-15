@@ -16,8 +16,8 @@ struct TWO_DOF_PID_PARAM{
 	T pGain = 0;
 	T iGain = 0;
 	T dGain = 0;
-	T upperControlLimit = 0;
-	T lowerControlLimit = 0;
+	T upperControlLimit = -1;
+	T lowerControlLimit = 1;
 };
 
 template<class T = float>
