@@ -10,3 +10,6 @@
 [submodule "Core/Lib/elapsedTimer"]
 	path = Core/Lib/elapsedTimer
 	url = git@github.com:NOKOLat/elapsedTimer.git
+[submodule "Core/Lib/SBUS"]
+	path = Core/Lib/SBUS
+	url = git@github.com:NOKOLat/SBUS.git
