@@ -45,6 +45,9 @@ void init(){
 	}
 	elapsedTimer->start();
 
+	//start to receive sbus.
+	HAL_UART_Receive_DMA(huartSbus,hsbus.getReceiveBufferPtr(),hsbus.getDataLen());
+
 	/*
 	 * communication check with icm20948
 	 * initialize icm20948
@@ -62,26 +65,13 @@ void init(){
 		isInitializing = !attitudeEstimate.isInitialized();
 	}
 	message("Initialization is complete");
+
+	esc.enable();
+	esc.arm();
 }
 
 void loop(){
 
-
-//	HAL_UART_Transmit(&huart3, (uint8_t *)buf, 6, 100);
-//	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
-
-//	uint8_t tmp;
-//	uint8_t pin = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1);
-//	HAL_I2C_Mem_Read(&hi2c2, ((uint8_t)ICM20948::Address::LOW)<<1, 26, 1, &tmp, 1, 100);
-//	std::bitset<8> bitset_1byte = tmp;
-//	message("Resister read " + std::to_string(26) + " : " + bitset_1byte.to_string() + ", INT pin state : " + std::to_string(pin),0);
-}
-
-void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c){
-	if(hi2c == &hi2c2){
-		message("I2C master rx complete callback",2);
-		attitudeEstimate.updateIMU();
-	}
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
@@ -106,6 +96,18 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
 	if(huart == &huart3){
 
+	}
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
+	if(huart == huartSbus){
+		hsbus.onReceive(multicopterInput);
+		if(hsbus.getData().failsafe){
+			hmulticopter->rcFailSafe();
+		}else if(hsbus.getData().framelost){
+			hmulticopter->rcFrameLost();
+		}
+		HAL_UART_Receive_DMA(huartSbus,hsbus.getReceiveBufferPtr(),hsbus.getDataLen());
 	}
 }
 

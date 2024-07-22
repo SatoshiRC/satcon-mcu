@@ -9,22 +9,34 @@
 
 namespace multicopter{
 
-MULTICOPTER::MULTICOPTER(PARAMETER param, ALTITUDE_CONTROL_MODE altitudeControlMode)
-:_param(param),
-altitudeControlMode(altitudeControlMode) {
-	// TODO Auto-generated constructor stub
-	rollController = TWO_DOF_PID(param->roll);
-	pitchController = TWO_DOF_PID(param->pitch);
-	yawRateController = TWO_DOF_PID(param->yawRate);
+MULTICOPTER::MULTICOPTER(PARAMETER &param, ElapsedTimer *elapsedTimer)
+:_param(param),elapsedTimer(elapsedTimer)
+{
+	mainMode = MAIN_MODE::DISARM;
+	
+	rollController = new TWO_DOF_PID(param.roll);
+	pitchController = new TWO_DOF_PID(param.pitch);
+	yawRateController = new TWO_DOF_PID(param.yawRate);
+	altitudeControlMode = param.altitudeControlMode;
 }
 
-OUTPUT MULTICOPTER::controller(INPUT input){
+OUTPUT MULTICOPTER::controller(const INPUT &input){
 	OUTPUT res;
 
+	controllerPreProcess(input);
+	if(mainMode != MAIN_MODE::ARM){
+		return res;
+	}
+
+
+	float refRoll = input.sbusRollNorm*_param.bankAngleLimit;
+	float refPitch = input.sbusPitchNorm*_param.bankAngleLimit;
+	float refYawRate = input.sbusRollNorm*_param.yawRateLimit;
+
 	std::array<float, 4> u;
-	u.at(3) = yawRateController.controller(input.refYawRate,input.yawRate);
-	u.at(1) = rollController.controller(input.refRoll,input.roll);
-	u.at(2) = pitchController.controller(input.refPitch,input.pitch);
+	u.at(3) = yawRateController.controller(refYawRate,input.yawRate);
+	u.at(1) = rollController.controller(refRoll,input.roll);
+	u.at(2) = pitchController.controller(refPitch,input.pitch);
 
 	switch(ALTITUDE_CONTROL_MODE){
 		case ALTITUDE_CONTROL_MODE::ALTITUDE_FEEDBACK:
@@ -42,8 +54,50 @@ OUTPUT MULTICOPTER::controller(INPUT input){
 
 }
 
-void MULTICOPTER::rcPreProcess(std::array<uint16_t, 18> &rc, INPUT &input){
+void MULTICOPTER::controllerPreProcess(const INPUT &input){
+	bool isArming(const INPUT &input){
+		if(input.thurottle < -0.99){
+			if(input.yawRate > 0.99){
+				return true;
+			}
+		}
+		return false;
+	}
+	bool isDisArming(const INPUT &input){
+		if(input.thurottle < -0.99){
+			if(input.yawRate < -0.99){
+				return true;
+			}
+		}
+		return false;
+	}
 
+	if(mainMode == MAIN_MODE::DISARM && isArming()){
+		mainMode = MAIN_MODE::ARMING;
+		armingMotionStart = elapsedTimer->getTimeMS();
+	}else if(mainMode == MAIN_MODE::ARMING){
+		if(isArming()){
+			if(armingMotionStart != 0 && armingMotionStart - elapsedTimer->getTimeMS() >= armingDurationTH){
+				mainMode = MAIN_MODE::ARM;
+			}
+		}else{
+			mainMode = MAIN_MODE::DISARM;
+			armingMotionStart = 0;
+		}
+	}else if(mainMode == MAIN_MODE::ARM && isDisArming()){
+		mainMode = MAIN_MODE::DISARMING;
+		armingMotionStart = elapsedTimer->getTimeMS();
+	}else if(mainMode == MAIN_MODE::DISARMING){
+		if(isDisArming()){
+			if(armingMotionStart != 0 && armingMotionStart - elapsedTimer->getTimeMS() >= armingDurationTH){
+				mainMode = MAIN_MODE::DISARM;
+			}
+		}else{
+			mainMode = MAIN_MODE::ARM;
+			armingMotionStart = 0;
+		}
+	}
+	
 }
 
 
