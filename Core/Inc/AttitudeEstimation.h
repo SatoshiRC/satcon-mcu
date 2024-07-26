@@ -30,14 +30,28 @@ public:
 		return accelValue;
 	}
 
-	Quaternion<float> getAttitude(){
+	//These functions are used to set sensor values, gyroscope and accelerometer.
+	void setGyroValue(const Vector3D<float> &arg){
+		gyroValue = arg;
+	}
+	void setAccelValue(const Vector3D<float> &arg){
+		accelValue = arg;
+	}
+
+
+	//getter functions
+	const Quaternion<float> &getAttitude(){
 		return attitude;
+	}
+	const float getYawRate(){
+		return yawRate;
 	}
 
 private:
 	ElapsedTimer *timer;
 	Quaternion<float> imuFrameDiff;
 	Quaternion<float> attitude;
+	float yawRate;
 	float elapsedTime;
 	float deltaTime;
 	bool _isInitialized;

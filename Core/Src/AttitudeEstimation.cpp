@@ -11,6 +11,7 @@ AttitudeEstimation::AttitudeEstimation(ElapsedTimer *timer, Quaternion<float> im
 	// TODO Auto-generated constructor stub
 	elapsedTime = timer->getTimeMS();
 	deltaTime = 0;
+	yawRate = 0;
 	_isInitialized = false;
 }
 
@@ -19,6 +20,7 @@ void AttitudeEstimation::updateIMU(){
 		_isInitialized = initialize();
 		return;
 	}
+	updateTime();
 
 	Quaternion<float> deltaGyro;
 
@@ -26,7 +28,7 @@ void AttitudeEstimation::updateIMU(){
 	auto gyroEarthFrame = (imuFrameDiff*attitude).invers().rotateVector(gyroValue);
 
 	//get yaw rate from gyro.
-	float yawRate = gyroEarthFrame[2];
+	yawRate = gyroEarthFrame[2];
 	gyroEarthFrame[2] = 0;
 
 	//get size of gyro vector
@@ -94,7 +96,6 @@ void AttitudeEstimation::updateTime(){
 	float tmp = elapsedTime;
 	elapsedTime =timer->getTimeMS();
 	deltaTime = (elapsedTime - tmp)/1000.0;
-
 }
 
 bool AttitudeEstimation::initialize(){

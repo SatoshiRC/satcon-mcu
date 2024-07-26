@@ -37,3 +37,5 @@ T TWO_DOF_PID<T>::controller(T reference, T state){
 
 	return res;
 }
+template float TWO_DOF_PID<float>::controller(float,float);
+template double TWO_DOF_PID<double>::controller(double,double);

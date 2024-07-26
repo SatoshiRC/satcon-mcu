@@ -10,6 +10,7 @@
 
 #include "Quaternion/Quaternion.h"
 #include "TWO_DOF_PID.h"
+#include "functional"
 
 namespace multicopter{
 
@@ -58,19 +59,19 @@ enum class MAIN_MODE{
 };
 
 struct PARAMETER{
-	TWO_DOF_PID_PARAM *roll;
-	TWO_DOF_PID_PARAM *pitch;
-	TWO_DOF_PID_PARAM *yawRate;
-	TWO_DOF_PID_PARAM *altitude;
+	TWO_DOF_PID_PARAM<float> *roll;
+	TWO_DOF_PID_PARAM<float> *pitch;
+	TWO_DOF_PID_PARAM<float> *yawRate;
+	TWO_DOF_PID_PARAM<float> *altitude;
 	float bankAngleLimit;	//give roll and pitch limit angle in rad
 	float yawRateLimit;		//give yaw rate limit in rad per sec
 
 	ALTITUDE_CONTROL_MODE altitudeControlMode;
 
-	PARAMETER(TWO_DOF_PID_PARAM *roll,
-	TWO_DOF_PID_PARAM *pitch,
-	TWO_DOF_PID_PARAM *yawRate,
-	TWO_DOF_PID_PARAM *altitude,
+	PARAMETER(TWO_DOF_PID_PARAM<float> *roll,
+	TWO_DOF_PID_PARAM<float> *pitch,
+	TWO_DOF_PID_PARAM<float> *yawRate,
+	TWO_DOF_PID_PARAM<float> *altitude,
 	ALTITUDE_CONTROL_MODE altitudeControlMode = ALTITUDE_CONTROL_MODE::THROTTLE,
 	float bankAngleLimit = 0.1745,
 	float yawRateLimit = 0.1745)
@@ -90,16 +91,18 @@ struct MULTICOPTER {
 		altitudeControlMode = mode;
 	}
 	void rcFrameLost(){};
-	void rcFailSafe(){};
-	void getMainMode(){
+	void rcFailSafe(){
+		mainMode = MAIN_MODE::DISARM;
+	};
+	MAIN_MODE getMainMode(){
 		return mainMode;
 	}
 private:
 	PARAMETER _param;
-	TWO_DOF_PID *rollController;
-	TWO_DOF_PID *pitchController;
-	TWO_DOF_PID *yawRateController;
-	TWO_DOF_PID altitudeController;
+	TWO_DOF_PID<float> *rollController;
+	TWO_DOF_PID<float> *pitchController;
+	TWO_DOF_PID<float> *yawRateController;
+	TWO_DOF_PID<float> *altitudeController;
 	ALTITUDE_CONTROL_MODE altitudeControlMode;
 	MAIN_MODE mainMode;
 	ElapsedTimer *elapsedTimer;

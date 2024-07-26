@@ -17,6 +17,7 @@
 #include <array>
 #include <bitset>
 #include <exception>
+#include <cmath>
 
 /*
  * param:
@@ -82,20 +83,24 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 			Vector3D<float> accel;
 			Vector3D<float> gyro;
 			icm20948->readIMU();
-			icm20948->getAccel(accel);
-			icm20948->getGyro(gyro);
+			icm20948->getIMU(accel, gyro);
 
-			attitudeEstimate.getAccelValue() = accel;
-			attitudeEstimate.getGyroValue() = gyro;
-
+			attitudeEstimate.setAccelValue(accel);
+			attitudeEstimate.setGyroValue(gyro);
 			attitudeEstimate.updateIMU();
+
+			auto attitude = attitudeEstimate.getAttitude();
+			auto z_machienFrame = attitude.rotateVector({0,0,1.0});
+			float roll = std::asin(z_machienFrame[0]);
+			float pitch = std::asin(z_machienFrame[1]);
+			float yawRate = attitudeEstimate.getYawRate();
+
+			multicopterInput.roll = roll;
+			multicopterInput.pitch = pitch;
+			multicopterInput.yawRate = yawRate;
+			esc.setSpeed(hmulticopter->controller(multicopterInput));
+
 		}
-	}
-}
-
-void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
-	if(huart == &huart3){
-
 	}
 }
 
@@ -107,7 +112,13 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 		}else if(hsbus.getData().framelost){
 			hmulticopter->rcFrameLost();
 		}
+		multicopterInput.sbusPitchNorm = hsbus.getPitchNorm();
+		multicopterInput.sbusRollNorm = hsbus.getRollNorm();
+		multicopterInput.sbusYawRateNorm = hsbus.getYawNorm();
+		multicopterInput.sbusAltitudeNorm = hsbus.getAltitudeNorm();
 		HAL_UART_Receive_DMA(huartSbus,hsbus.getReceiveBufferPtr(),hsbus.getDataLen());
+		
+		esc.setSpeed(hmulticopter->controller(multicopterInput));
 	}
 }
 

@@ -10,7 +10,7 @@
 void ICM20948_USER::confirmConnection(){
     uint8_t whoami = icm20948->whoami();;
 	for(uint8_t n=0; n<10 && whoami!=0xea; n++){
-		message("Error : Icm20948 is not detected \n retrying...",2);
+		// message("Error : Icm20948 is not detected \n retrying...",2);
 		HAL_I2C_DeInit(icm20948->getI2CHandller());
 		HAL_I2C_Init(icm20948->getI2CHandller());
 		icm20948->changeUserBank(ICM20948::REGISTER::BANK::BANK0);

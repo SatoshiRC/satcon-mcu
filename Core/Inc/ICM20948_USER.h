@@ -8,8 +8,7 @@
 #ifndef ICM20948_ICM20948_USER_H_
 #define ICM20948_ICM20948_USER_H_
 
-#include "ICM20948.h"
-#include "ICM20948_HAL.h"
+#include "ICM20948/ICM20948_HAL.h"
 #include "stdexcept"
 
 
