@@ -48,10 +48,10 @@ OUTPUT MULTICOPTER::controller(const INPUT &input){
 			break;
 	}
 
-	res.motor0 = u[0] + u[2] + u[3];
-	res.motor1 = u[0] - u[1] - u[3];
-	res.motor2 = u[0] - u[2] + u[3];
-	res.motor3 = u[0] + u[2] - u[3];
+	res[0] = u[0] + u[2] + u[3];
+	res[1] = u[0] - u[1] - u[3];
+	res[2] = u[0] - u[2] + u[3];
+	res[3] = u[0] + u[2] - u[3];
 
 	return res;
 

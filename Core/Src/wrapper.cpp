@@ -25,9 +25,8 @@
  * param2(level):set message level. Planning to use message control.(For error = 0 and system message = 1, runtime message = 2, debug = 3)
  */
 const uint8_t messageLevel = 3;
-void message(std::string str, uint8_t level = 3);
-
-
+static void message(std::string str, uint8_t level = 3);
+static std::string messageBuffer;
 
 std::array<float, 3> gyroValue;
 std::array<float, 3> AccelValue;
@@ -39,10 +38,10 @@ void init(){
 
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);
 
-	std::bitset<8> bitset_1byte = 0;
-
 	if(elapsedTimer->selfTest() == false){
-		message("ERROR : elapsed timer freaquency is not correct",2);
+//		std::string tmp = "ERROR : elapsed timer freaquency is not correct";
+//		message(&tmp,2);
+		message("ERROR : elapsed timer freaquency is not correct",0);
 	}
 	elapsedTimer->start();
 
@@ -55,8 +54,9 @@ void init(){
 	 */
 	try{
 		icm20948User.confirmConnection();
+		message("ICM20948 is detected",2);
 	}catch(std::runtime_error &e){
-		message("Error : Icm20948 is not detected",2);
+		message("Error : Icm20948 is not detected",0);
 	}
 	icm20948User.init();
 	CLEAR_MASK_ICM20948_INTERRUPT();
@@ -64,15 +64,19 @@ void init(){
 
 	while(isInitializing){
 		isInitializing = !attitudeEstimate.isInitialized();
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1));
+
 	}
-	message("Initialization is complete");
+	HAL_Delay(10);
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
+	message("Initialization is complete",1);
 
 	esc.enable();
 	esc.arm();
 }
 
 void loop(){
-
+	HAL_Delay(30);
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
@@ -122,10 +126,19 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 	}
 }
 
-void message(std::string str, uint8_t level){
+static void message(std::string str, uint8_t level){
 	if(level <= messageLevel){
 		str += "\n";
-		HAL_UART_Transmit_DMA(&huart3, (uint8_t *)str.c_str(), str.length());
+		if(huart3.gState == HAL_UART_STATE_READY){
+			messageBuffer = std::string(str);
+			HAL_UART_Transmit_DMA(&huart3, (uint8_t *)messageBuffer.c_str(), messageBuffer.length());
+		}
 	}
 	return;
 }
+
+//void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
+//	if(huart == &huart3){
+//		huart->gState = HAL_UART_STATE_READY;
+//	}
+//}

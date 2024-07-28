@@ -8,7 +8,7 @@
 #include "ICM20948_USER.h"
 
 void ICM20948_USER::confirmConnection(){
-    uint8_t whoami = icm20948->whoami();;
+    uint8_t whoami = icm20948->whoami();
 	for(uint8_t n=0; n<10 && whoami!=0xea; n++){
 		// message("Error : Icm20948 is not detected \n retrying...",2);
 		HAL_I2C_DeInit(icm20948->getI2CHandller());
@@ -18,7 +18,9 @@ void ICM20948_USER::confirmConnection(){
 		HAL_Delay(100);
 		whoami = icm20948->whoami();
 	}
-    throw std::runtime_error("ICM20948 is not detected");
+	if(whoami!=0xea){
+		throw std::runtime_error("ICM20948 is not detected");
+	}
 }
 
 void ICM20948_USER::init(){
@@ -38,6 +40,6 @@ void ICM20948_USER::init(){
 
     icm20948->pwrmgmt1(0x01);
     icm20948->intPinConfig(0b00010000);
-    icm20948->intenable();
+    icm20948->intenable1();
     icm20948->pwrmgmt2(0b0);
 }
