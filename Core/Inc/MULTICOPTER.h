@@ -32,19 +32,7 @@ struct INPUT{
 };
 
 //give the motor output in persent(%)
-struct OUTPUT{
-	float motor0;
-	float motor1;
-	float motor2;
-	float motor3;
-
-	OUTPUT(){
-		motor0 = 0;
-		motor1 = 0;
-		motor2 = 0;
-		motor3 = 0;
-	}
-};
+typedef std::array<float, 4> OUTPUT;
 
 enum class ALTITUDE_CONTROL_MODE{
 	THROTTLE,
