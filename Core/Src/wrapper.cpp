@@ -39,9 +39,9 @@ void init(){
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);
 
 	if(elapsedTimer->selfTest() == false){
-//		std::string tmp = "ERROR : elapsed timer freaquency is not correct";
-//		message(&tmp,2);
 		message("ERROR : elapsed timer freaquency is not correct",0);
+	}else{
+		message("elapsed timer is working",2);
 	}
 	elapsedTimer->start();
 
@@ -82,12 +82,13 @@ void loop(){
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 	if(GPIO_Pin == GPIO_PIN_1){
 		if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1) == GPIO_PIN_SET){
-			message("ICM20948 interrupt",2);
 			attitudeEstimate.updateTime();
 			Vector3D<float> accel;
 			Vector3D<float> gyro;
 			icm20948->readIMU();
 			icm20948->getIMU(accel, gyro);
+
+			gyro = Vector3D<float>();
 
 			attitudeEstimate.setAccelValue(accel);
 			attitudeEstimate.setGyroValue(gyro);
@@ -104,6 +105,11 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 			multicopterInput.yawRate = yawRate;
 			esc.setSpeed(hmulticopter->controller(multicopterInput));
 
+//			message(std::to_string((int16_t)(accel[0]*100))+", "+std::to_string((int16_t)(accel[1]*100))+", "
+//								+std::to_string((int16_t)(accel[2]*100)));
+
+			message(std::to_string((int16_t)(attitude[0]*100))+", "+std::to_string((int16_t)(attitude[1]*100))+", "
+					+std::to_string((int16_t)(attitude[2]*100))+", "+std::to_string((int16_t)(attitude[3]*100)));
 		}
 	}
 }
