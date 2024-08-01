@@ -6,6 +6,7 @@ SBUS_HANDLE::SBUS_HANDLE(nokolat::SBUS_DATA lower, nokolat::SBUS_DATA center, no
 }
 
 void SBUS_HANDLE::onReceive(multicopter::INPUT &input){
+	data = this->decode(receiveBuffer);
     input.sbusRollNorm = getRollNorm();
     input.sbusPitchNorm = getPitchNorm();
     input.sbusYawRateNorm = getYawNorm();
@@ -14,12 +15,9 @@ void SBUS_HANDLE::onReceive(multicopter::INPUT &input){
 }
 
 float SBUS_HANDLE::getNorm(const uint8_t channel){
-    float tmp = data.at(channel) - center.at(channel);
+    float tmp = data.at(channel) - lower.at(channel);
     float res = 0;
-    if(tmp < 0){
-        res = tmp / (center.at(channel) - lower.at(channel));
-    }else{
-        res = tmp / (upper.at(channel) - center.at(channel));
-    }
+	res = (tmp / (upper.at(channel) - lower.at(channel))) * 2.0 - 1.0;
+
     return res;
 }

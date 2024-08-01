@@ -17,6 +17,7 @@
 #include "TWO_DOF_PID.h"
 #include "SBUS_Handller.h"
 #include "params.h"
+#include "Madgwick/Madgwick.h"
 
 #include "tim.h"
 #include "usart.h"
@@ -28,11 +29,16 @@ extern DMA_HandleTypeDef hdma_usart3_tx;
 UART_HandleTypeDef *huartSbus = &huart2;
 SBUS_HANDLE hsbus(lower,center, upper);
 
+static std::function<void(void)> _icm20948Callback;
+
 ICM20948_HAL *icm20948 = new ICM20948_HAL(&hi2c2, ICM20948::Address::LOW);
 ICM20948_USER icm20948User(icm20948);
+void icm20948CallbackCalibration();
+void icm20948Callback();
+
 
 ElapsedTimer *elapsedTimer = new ElapsedTimer(&htim5, 1000000);
-AttitudeEstimation attitudeEstimate(elapsedTimer);
+Madgwick attitudeEstimate(elapsedTimer);
 
 multicopter::PARAMETER defaultParam(rollParam, rollParam, yawRateParam,altitudeParam);
 multicopter::MULTICOPTER *hmulticopter = new multicopter::MULTICOPTER(defaultParam,elapsedTimer);
