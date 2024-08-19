@@ -27,6 +27,7 @@
 extern DMA_HandleTypeDef hdma_usart3_tx;
 
 UART_HandleTypeDef *huartSbus = &huart2;
+UART_HandleTypeDef *huartXbee = &huart4;
 SBUS_HANDLE hsbus(lower,center, upper);
 
 static std::function<void(void)> _icm20948Callback;
@@ -40,7 +41,7 @@ void icm20948Callback();
 ElapsedTimer *elapsedTimer = new ElapsedTimer(&htim5, 1000000);
 Madgwick attitudeEstimate(elapsedTimer);
 
-multicopter::PARAMETER defaultParam(rollParam, rollParam, yawRateParam,altitudeParam);
+multicopter::PARAMETER defaultParam(rollParam, rollParam, yawRateParam,altitudeParam, initialAltitudeControl, initialBankAngleLim, initialYawRateLim);
 multicopter::MULTICOPTER *hmulticopter = new multicopter::MULTICOPTER(defaultParam,elapsedTimer);
 multicopter::INPUT multicopterInput;
 

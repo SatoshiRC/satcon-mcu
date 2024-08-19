@@ -1,16 +1,16 @@
 #include "SBUS_Handller.h"
 
 SBUS_HANDLE::SBUS_HANDLE(nokolat::SBUS_DATA lower, nokolat::SBUS_DATA center, nokolat::SBUS_DATA upper)
-:center(center),lower(lower),upper(upper){
+:center(center),upper(upper),lower(lower){
 
 }
 
 void SBUS_HANDLE::onReceive(multicopter::INPUT &input){
 	data = this->decode(receiveBuffer);
     input.sbusRollNorm = getRollNorm();
-    input.sbusPitchNorm = getPitchNorm();
+    input.sbusPitchNorm = -getPitchNorm();
     input.sbusYawRateNorm = getYawNorm();
-    input.sbusAltitudeNorm = getAltitudeNorm();
+    input.sbusAltitudeNorm = -getAltitudeNorm();
     input.updateFlag = true;
 }
 

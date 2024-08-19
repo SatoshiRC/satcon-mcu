@@ -13,8 +13,12 @@
 extern "C" {
 #endif
 
+#include "tim.h"
+
 void init(void);
 void loop(void);
+
+void tim14Callback();
 
 void debug();
 

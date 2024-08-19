@@ -9,14 +9,18 @@
 
 template<class T>
 T TWO_DOF_PID<T>::controller(T reference, T state){
+	float time = elapsedTimer->getTimeMS();
+	float diffTime = time - elapsedTime;
+	elapsedTime = time;
+
 	T diff = state - befState;
 	T error = state - reference;
-	integral += error;
+	integral += error*diffTime/1000.0;
 
 	T res = reference * param.ffGain;
 	res += error * param.pGain;
 	res += integral * param.iGain;
-	res += diff * param.dGain;
+	res -= diff * param.dGain;
 
 	const auto lowerLimit = param.lowerControlLimit;
 	const auto upperLimit = param.upperControlLimit;

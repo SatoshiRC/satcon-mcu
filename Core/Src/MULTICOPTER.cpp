@@ -8,6 +8,13 @@
 #include "MULTICOPTER.h"
 
 namespace multicopter{
+std::string to_string(OUTPUT arg){
+	return std::to_string((int8_t)(arg[0]*100)) + ", "
+			+ std::to_string((int8_t)(arg[1]*100)) + ", "
+			+ std::to_string((int8_t)(arg[2]*100)) + ", "
+			+ std::to_string((int8_t)(arg[3]*100));
+}
+
 
 MULTICOPTER::MULTICOPTER(PARAMETER &param, ElapsedTimer *elapsedTimer)
 :_param(param),elapsedTimer(elapsedTimer)
@@ -22,17 +29,20 @@ MULTICOPTER::MULTICOPTER(PARAMETER &param, ElapsedTimer *elapsedTimer)
 }
 
 OUTPUT MULTICOPTER::controller(const INPUT &input){
-	OUTPUT res;
+	OUTPUT res={};
 
 	controllerPreProcess(input);
 	if(mainMode != MAIN_MODE::ARM){
+		yawRateController->reset();
+		rollController->reset();
+		pitchController->reset();
 		return res;
 	}
 
 
 	float refRoll = input.sbusRollNorm*_param.bankAngleLimit;
 	float refPitch = input.sbusPitchNorm*_param.bankAngleLimit;
-	float refYawRate = input.sbusRollNorm*_param.yawRateLimit;
+	float refYawRate = input.sbusYawRateNorm*_param.yawRateLimit;
 
 	std::array<float, 4> u;
 	u.at(3) = yawRateController->controller(refYawRate,input.yawRate);
@@ -41,17 +51,23 @@ OUTPUT MULTICOPTER::controller(const INPUT &input){
 
 	switch(altitudeControlMode){
 		case ALTITUDE_CONTROL_MODE::ALTITUDE_FEEDBACK:
-			u.at(0) = altitudeController->controller(input.thurottle,input.altitude);
+			u.at(0) = altitudeController->controller(input.sbusAltitudeNorm,input.altitude);
 			break;
 		case ALTITUDE_CONTROL_MODE::THROTTLE:
-			u.at(0) = input.thurottle;
+			u.at(0) = std::sqrt((input.sbusAltitudeNorm + 1.0) * 0.5);
 			break;
 	}
 
-	res[0] = u[0] + u[2] + u[3];
-	res[1] = u[0] - u[1] - u[3];
-	res[2] = u[0] - u[2] + u[3];
-	res[3] = u[0] + u[2] - u[3];
+//	for(auto &it:u){
+//		it = std::copysign(std::sqrt(std::abs(it)), it);
+//	}
+
+	controlValue = u;
+
+	res[0] = u[0] + u[1] + u[2] - u[3];
+	res[1] = u[0] + u[1] - u[2] + u[3];
+	res[2] = u[0] - u[1] + u[2] + u[3];
+	res[3] = u[0] - u[1] - u[2] - u[3];
 
 	return res;
 
@@ -59,16 +75,16 @@ OUTPUT MULTICOPTER::controller(const INPUT &input){
 
 void MULTICOPTER::controllerPreProcess(const INPUT &input){
 	std::function<bool(const INPUT)> isArming =[](const INPUT &input){
-		if(input.thurottle < -0.99){
-			if(input.yawRate > 0.99){
+		if(input.sbusAltitudeNorm < -0.99){
+			if(input.sbusYawRateNorm > 0.99){
 				return true;
 			}
 		}
 		return false;
 	};
 	std::function<bool(const INPUT)>  isDisArming = [](const INPUT &input){
-		if(input.thurottle < -0.99){
-			if(input.yawRate < -0.99){
+		if(input.sbusAltitudeNorm < -0.99){
+			if(input.sbusYawRateNorm < -0.99){
 				return true;
 			}
 		}
@@ -80,7 +96,7 @@ void MULTICOPTER::controllerPreProcess(const INPUT &input){
 		armingMotionStart = elapsedTimer->getTimeMS();
 	}else if(mainMode == MAIN_MODE::ARMING){
 		if(isArming(input)){
-			if(armingMotionStart != 0 && armingMotionStart - elapsedTimer->getTimeMS() >= armingDurationTH){
+			if(armingMotionStart != 0 && elapsedTimer->getTimeMS() - armingMotionStart >= armingDurationTH){
 				mainMode = MAIN_MODE::ARM;
 			}
 		}else{
@@ -92,7 +108,7 @@ void MULTICOPTER::controllerPreProcess(const INPUT &input){
 		armingMotionStart = elapsedTimer->getTimeMS();
 	}else if(mainMode == MAIN_MODE::DISARMING){
 		if(isDisArming(input)){
-			if(armingMotionStart != 0 && armingMotionStart - elapsedTimer->getTimeMS() >= armingDurationTH){
+			if(armingMotionStart != 0 &&  elapsedTimer->getTimeMS() - armingMotionStart >= armingDurationTH){
 				mainMode = MAIN_MODE::DISARM;
 			}
 		}else{
@@ -101,6 +117,13 @@ void MULTICOPTER::controllerPreProcess(const INPUT &input){
 		}
 	}
 	
+}
+
+std::string MULTICOPTER::getCotroValue(){
+	return std::to_string((int16_t)(controlValue[0]*100)) + ", "
+			+ std::to_string((int16_t)(controlValue[1]*100)) + ", "
+			+ std::to_string((int16_t)(controlValue[2]*100)) + ", "
+			+ std::to_string((int16_t)(controlValue[3]*100));
 }
 
 

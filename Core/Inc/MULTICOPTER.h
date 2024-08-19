@@ -11,6 +11,7 @@
 #include "Quaternion/Quaternion.h"
 #include "TWO_DOF_PID.h"
 #include "functional"
+#include "string"
 
 namespace multicopter{
 
@@ -33,6 +34,7 @@ struct INPUT{
 
 //give the motor output in persent(%)
 typedef std::array<float, 4> OUTPUT;
+std::string to_string(OUTPUT arg);
 
 enum class ALTITUDE_CONTROL_MODE{
 	THROTTLE,
@@ -78,13 +80,17 @@ struct MULTICOPTER {
 	void setAltitudeControlMode(ALTITUDE_CONTROL_MODE mode){
 		altitudeControlMode = mode;
 	}
-	void rcFrameLost(){};
+	void setRcFrameLost(bool isFrameLost = true){
+		this->isFrameLost = isFrameLost;
+	};
 	void rcFailSafe(){
 		mainMode = MAIN_MODE::DISARM;
 	};
 	MAIN_MODE getMainMode(){
 		return mainMode;
 	}
+
+	std::string getCotroValue();
 private:
 	PARAMETER _param;
 	TWO_DOF_PID<float> *rollController;
@@ -95,9 +101,13 @@ private:
 	MAIN_MODE mainMode;
 	ElapsedTimer *elapsedTimer;
 
+	bool isFrameLost;
+
 	void controllerPreProcess(const INPUT &input);
 	float armingMotionStart = 0;
 	float armingDurationTH = 1000; //ms
+
+	std::array<float, 4> controlValue;
 };
 
 }

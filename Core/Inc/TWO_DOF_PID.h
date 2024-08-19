@@ -31,16 +31,24 @@ struct TWO_DOF_PID_PARAM{
 template<class T = float>
 struct TWO_DOF_PID {
 	TWO_DOF_PID(TWO_DOF_PID_PARAM<T> &param, ElapsedTimer *elapsedTimer)
-	:param(param),elapsedTimer(elapsedTimer){};
+	:param(param),elapsedTimer(elapsedTimer){
+		integral = 0;
+		befState = 0;
+		elapsedTime = 0;
+	};
 	T controller(T reference, T state);
 	void setParam(TWO_DOF_PID_PARAM<T> &param){
 		this->param = param;
+	}
+	void reset(){
+		integral = 0;
 	}
 private:
 	TWO_DOF_PID_PARAM<T> param;
 	T integral;
 	T befState;
 	ElapsedTimer *elapsedTimer;
+	float elapsedTime;
 };
 
 #endif /* INC_TWO_DOF_PID_H_ */
