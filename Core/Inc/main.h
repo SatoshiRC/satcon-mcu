@@ -57,15 +57,15 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define XBee_TX_Pin GPIO_PIN_0
-#define XBee_TX_GPIO_Port GPIOA
-#define XBee_RX_Pin GPIO_PIN_1
-#define XBee_RX_GPIO_Port GPIOA
 #define SBUS_Pin GPIO_PIN_3
 #define SBUS_GPIO_Port GPIOA
-#define ICM20948_IT_Pin GPIO_PIN_1
+#define ICM20948_IT_Pin GPIO_PIN_2
 #define ICM20948_IT_GPIO_Port GPIOB
-#define ICM20948_IT_EXTI_IRQn EXTI1_IRQn
+#define ICM20948_IT_EXTI_IRQn EXTI2_IRQn
+#define SERVO_1_Pin GPIO_PIN_14
+#define SERVO_1_GPIO_Port GPIOB
+#define SERVO_2_Pin GPIO_PIN_15
+#define SERVO_2_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

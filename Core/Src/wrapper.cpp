@@ -36,7 +36,17 @@ void init(){
 
 	SET_MASK_ICM20948_INTERRUPT();
 
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);
+	HAL_TIM_PWM_Start(RED_LED);
+	HAL_TIM_PWM_Start(YELLOW_LED);
+	HAL_TIM_PWM_Start(BLUE_LED);
+
+	__HAL_TIM_SET_COMPARE(ledTim, RED_LED_CHANNEL, 100);
+	__HAL_TIM_SET_COMPARE(ledTim, YELLOW_LED_CHANNEL, 100);
+	__HAL_TIM_SET_COMPARE(ledTim, BLUE_LED_CHANNEL, 100);
+	HAL_Delay(1000);
+	__HAL_TIM_SET_COMPARE(ledTim, RED_LED_CHANNEL, 0);
+	__HAL_TIM_SET_COMPARE(ledTim, BLUE_LED_CHANNEL, 0);
+
 
 	//start to receive sbus.
 	HAL_UART_Receive_DMA(huartSbus,hsbus.getReceiveBufferPtr(),hsbus.getDataLen());
@@ -47,6 +57,7 @@ void init(){
 		message("ERROR : elapsed timer freaquency is not correct",0);
 	}else{
 		message("elapsed timer is working",2);
+		__HAL_TIM_SET_COMPARE(ledTim, YELLOW_LED_CHANNEL, 200);
 	}
 	elapsedTimer->start();
 
@@ -57,6 +68,7 @@ void init(){
 	try{
 		icm20948User.confirmConnection();
 		message("ICM20948 is detected",2);
+		__HAL_TIM_SET_COMPARE(ledTim, YELLOW_LED_CHANNEL, 300);
 	}catch(std::runtime_error &e){
 		message("Error : Icm20948 is not detected",0);
 	}
@@ -65,33 +77,40 @@ void init(){
 	CLEAR_MASK_ICM20948_INTERRUPT();
 	message("ICM20948 is initialized");
 
-	esc.enable();
-//	esc.calibration();
-	esc.arm();
-
 	while(isInitializing){
+		__HAL_TIM_SET_COMPARE(ledTim, BLUE_LED_CHANNEL, 0);
 		isInitializing = !attitudeEstimate.isInitialized();
-		isInitializing = isInitializing && !icm20948User.isCalibrated();
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1));
+		bool tmp = icm20948User.isCalibrated();
+		if(tmp == true){
+			message("icm20948 calibration is finished",3);
+			_icm20948Callback = icm20948Callback;
+		}
+		isInitializing = !tmp;
+//		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1));
 		HAL_Delay(50);
 	}
+	__HAL_TIM_SET_COMPARE(ledTim, YELLOW_LED_CHANNEL, 400);
 	HAL_Delay(100);
 
+	esc.enable();
+	esc.calibration();
+	esc.arm();
 
-	_icm20948Callback = icm20948Callback;
+	__HAL_TIM_SET_COMPARE(ledTim, YELLOW_LED_CHANNEL, 500);
 	HAL_Delay(10);
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
 	message("Initialization is complete",1);
 }
 
 void loop(){
 	HAL_Delay(100);
 	if(hmulticopter->getMainMode() == multicopter::MAIN_MODE::ARM){
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);
+		__HAL_TIM_SET_COMPARE(ledTim, BLUE_LED_CHANNEL, 500);
+		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, GPIO_PIN_SET);
 	}else if(hmulticopter->getMainMode() == multicopter::MAIN_MODE::DISARM){
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
+		__HAL_TIM_SET_COMPARE(ledTim, BLUE_LED_CHANNEL, 0);
 	}else{
-		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
+		__HAL_TIM_SET_COMPARE(ledTim, BLUE_LED_CHANNEL, 250);
 	}
 }
 
@@ -101,6 +120,7 @@ void icm20948CallbackCalibration(){
 	icm20948->readIMU();
 	icm20948->getIMU(accel, gyro);
 	icm20948User.calibration(gyro);
+	__HAL_TIM_SET_COMPARE(ledTim, BLUE_LED_CHANNEL, 500);
 }
 
 void icm20948Callback(){
@@ -124,21 +144,21 @@ void icm20948Callback(){
 	multicopterInput.yawRate = yawRate;
 	auto res = hmulticopter->controller(multicopterInput);
 	esc.setSpeed(res);
-	message(multicopter::to_string(res), 3);
+//	message(multicopter::to_string(res), 3);
 //	message(hmulticopter->getCotroValue(), 3);
+
 
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
-	if(GPIO_Pin == GPIO_PIN_1){
-		if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1) == GPIO_PIN_SET){
+	if(GPIO_Pin == ICM20948_IT_Pin){
+		if(HAL_GPIO_ReadPin(ICM20948_IT_GPIO_Port, ICM20948_IT_Pin) == GPIO_PIN_SET){
 			_icm20948Callback();
 		}
 	}
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
-	HAL_GPIO_TogglePin(GPIOH, GPIO_PIN_1);
 	if(huart == huartSbus){
 		htim14.Instance->CNT = 0;
 		hsbus.onReceive(multicopterInput);
@@ -150,9 +170,19 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 		}else{
 			hmulticopter->setRcFrameLost(false);
 		}
-		HAL_UART_Receive_IT(huartSbus,hsbus.getReceiveBufferPtr(),hsbus.getDataLen());
+		HAL_UART_Receive_DMA(huartSbus,hsbus.getReceiveBufferPtr(),hsbus.getDataLen());
 
-//		esc.setSpeed(hmulticopter->controller(multicopterInput));
+		if(hsbus.getData().failsafe || hsbus.getData().framelost){
+			return;
+		}
+
+		esc.setSpeed(hmulticopter->controller(multicopterInput));
+		std::string str= std::to_string(int8_t(multicopterInput.sbusRollNorm*100))+", ";
+		str += std::to_string(int8_t(multicopterInput.sbusPitchNorm*100))+", ";
+		str += std::to_string(int8_t(multicopterInput.sbusYawRateNorm*100))+", ";
+		str += std::to_string(int8_t(multicopterInput.sbusAltitudeNorm*100))+", ";
+		message(str, 3);
+		__HAL_TIM_SET_COMPARE(ledTim, RED_LED_CHANNEL, 500);
 	}else if(huart == huartXbee){
 
 	}
@@ -175,10 +205,10 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
 static void message(std::string str, uint8_t level){
 	if(level <= messageLevel){
 		str += "\n";
-		if(huart3.gState == HAL_UART_STATE_READY){
+		if(huart4.gState == HAL_UART_STATE_READY){
 			static std::string messageBuffer;
 			messageBuffer = std::string(str);
-			HAL_UART_Transmit_DMA(&huart3, (uint8_t *)messageBuffer.c_str(), messageBuffer.length());
+			HAL_UART_Transmit_DMA(&huart4, (uint8_t *)messageBuffer.c_str(), messageBuffer.length());
 		}
 	}
 	return;
@@ -190,12 +220,13 @@ void tim14Callback(){
 	if((sr & (TIM_IT_CC1)) == (TIM_IT_CC1)){
 		__HAL_TIM_CLEAR_FLAG(htim,TIM_IT_CC1);
 		HAL_UART_AbortReceive(huartSbus);
-		HAL_UART_Receive_IT(huartSbus,hsbus.getReceiveBufferPtr(),hsbus.getDataLen());
+		HAL_UART_Receive_DMA(huartSbus,hsbus.getReceiveBufferPtr(),hsbus.getDataLen());
 		hmulticopter->setRcFrameLost();
 	}else if((sr & TIM_IT_UPDATE) == (TIM_IT_UPDATE)){
+		HAL_UART_Receive_DMA(huartSbus,hsbus.getReceiveBufferPtr(),hsbus.getDataLen());
 		__HAL_TIM_CLEAR_FLAG(htim,TIM_IT_UPDATE);
 		hmulticopter->rcFailSafe();
-		esc.setSpeed(0);
+//		esc.setSpeed(0);
 	}
 }
 
