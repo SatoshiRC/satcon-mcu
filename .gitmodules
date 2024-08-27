@@ -16,3 +16,6 @@
 [submodule "Core/Lib/Madgwick"]
 	path = Core/Lib/Madgwick
 	url = git@github.com:NOKOLat/Madgwick.git
+[submodule "Core/Lib/ringBuffer"]
+	path = Core/Lib/ringBuffer
+	url = git@github.com:NOKOLat/Ring-Buffer.git
