@@ -47,7 +47,7 @@ void icm20948Callback();
 
 
 ElapsedTimer *elapsedTimer = new ElapsedTimer(&htim5, 1000000);
-Madgwick attitudeEstimate(elapsedTimer);
+Madgwick attitudeEstimate(elapsedTimer,imuFrame);
 
 multicopter::PARAMETER defaultParam(rollParam, rollParam, yawRateParam,altitudeParam, initialAltitudeControl, initialBankAngleLim, initialYawRateLim);
 multicopter::MULTICOPTER *hmulticopter = new multicopter::MULTICOPTER(defaultParam,elapsedTimer);

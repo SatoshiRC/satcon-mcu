@@ -4,3 +4,4 @@
 !.project
 /Drivers/
 *.launch
+/Release/

@@ -119,7 +119,7 @@ void MULTICOPTER::controllerPreProcess(const INPUT &input){
 	
 }
 
-std::string MULTICOPTER::getCotroValue(){
+std::string MULTICOPTER::getCotrolValue(){
 	return std::to_string((int16_t)(controlValue[0]*100)) + ", "
 			+ std::to_string((int16_t)(controlValue[1]*100)) + ", "
 			+ std::to_string((int16_t)(controlValue[2]*100)) + ", "

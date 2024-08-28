@@ -90,7 +90,7 @@ struct MULTICOPTER {
 		return mainMode;
 	}
 
-	std::string getCotroValue();
+	std::string getCotrolValue();
 private:
 	PARAMETER _param;
 	TWO_DOF_PID<float> *rollController;

@@ -41,7 +41,7 @@ public:
 	}
 private:
 	std::array<uint8_t, __size> buffer;
-	std::array<uint8_t, __size>::iterator it;
+	typename std::array<uint8_t, __size>::iterator it;
 	bool __isReceivedEOL;
 	COMMAND<__size-4> command;
 };

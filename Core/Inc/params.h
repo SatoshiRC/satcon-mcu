@@ -38,4 +38,4 @@ std::array<uint16_t, 18> lower = {
     0, 0
 };
 
-Quaternion<float> imuFrame(1/std::sqrt(2),0,0,1/std::sqrt(2));
+Quaternion<float> imuFrame(1/std::sqrt(2),0,0,-1/std::sqrt(2));
