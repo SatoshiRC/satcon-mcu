@@ -18,6 +18,7 @@
 #include "SBUS_Handller.h"
 #include "params.h"
 #include "Madgwick/Madgwick.h"
+#include "HighPassFilter.h"
 
 #include "tim.h"
 #include "usart.h"
@@ -44,6 +45,9 @@ ICM20948_HAL *icm20948 = new ICM20948_HAL(&hi2c2, ICM20948::Address::LOW);
 ICM20948_USER icm20948User(icm20948);
 void icm20948CallbackCalibration();
 void icm20948Callback();
+HighPassFilter rollFilter(281.3,1,1/std::sqrt(2.0f));
+HighPassFilter pitchFilter(281.3,1,1/std::sqrt(2.0f));
+HighPassFilter yawRateFilter(281.3,1,1/std::sqrt(2.0f));
 
 
 ElapsedTimer *elapsedTimer = new ElapsedTimer(&htim5, 1000000);

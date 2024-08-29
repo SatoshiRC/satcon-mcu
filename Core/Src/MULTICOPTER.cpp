@@ -26,6 +26,7 @@ MULTICOPTER::MULTICOPTER(PARAMETER &param, ElapsedTimer *elapsedTimer)
 	yawRateController = new TWO_DOF_PID(*param.yawRate, elapsedTimer);
 	altitudeController = new TWO_DOF_PID(*param.altitude, elapsedTimer);
 	altitudeControlMode = param.altitudeControlMode;
+	isFrameLost = false;
 }
 
 OUTPUT MULTICOPTER::controller(const INPUT &input){
@@ -36,27 +37,36 @@ OUTPUT MULTICOPTER::controller(const INPUT &input){
 		yawRateController->reset();
 		rollController->reset();
 		pitchController->reset();
+
+		befInput = input;
 		return res;
 	}
 
-
 	float refRoll = input.sbusRollNorm*_param.bankAngleLimit;
 	float refPitch = input.sbusPitchNorm*_param.bankAngleLimit;
+
+	float refRollRate = 4*(refRoll - input.roll);
+	float refPitchRate = 4*(refPitch - input.pitch);
 	float refYawRate = input.sbusYawRateNorm*_param.yawRateLimit;
 
+	float rollRateDiff = input.rollRate;
+	float pitchRateDiff = input.pitchRate;
+
 	std::array<float, 4> u;
-	u.at(3) = yawRateController->controller(refYawRate,input.yawRate);
-	u.at(1) = rollController->controller(refRoll,input.roll);
-	u.at(2) = pitchController->controller(refPitch,input.pitch);
+	u.at(3) = yawRateController->controller(refYawRate,0,input.yawRate);
+	u.at(1) = rollController->controller(refRollRate,0,input.rollRate);
+	u.at(2) = pitchController->controller(refPitch,0,input.pitchRate);
 
 	switch(altitudeControlMode){
 		case ALTITUDE_CONTROL_MODE::ALTITUDE_FEEDBACK:
 			u.at(0) = altitudeController->controller(input.sbusAltitudeNorm,input.altitude);
 			break;
 		case ALTITUDE_CONTROL_MODE::THROTTLE:
-			u.at(0) = std::sqrt((input.sbusAltitudeNorm + 1.0) * 0.5);
+			u.at(0) = sqrt((input.sbusAltitudeNorm + 1.0) * 0.5);
 			break;
 	}
+
+//	linarization(u);
 
 //	for(auto &it:u){
 //		it = std::copysign(std::sqrt(std::abs(it)), it);
@@ -69,7 +79,12 @@ OUTPUT MULTICOPTER::controller(const INPUT &input){
 	res[2] = u[0] - u[1] + u[2] + u[3];
 	res[3] = u[0] - u[1] - u[2] - u[3];
 
+	befInput = input;
 	return res;
+
+}
+
+void MULTICOPTER::linarization(std::array<float, 4> &u){
 
 }
 
@@ -97,6 +112,7 @@ void MULTICOPTER::controllerPreProcess(const INPUT &input){
 	}else if(mainMode == MAIN_MODE::ARMING){
 		if(isArming(input)){
 			if(armingMotionStart != 0 && elapsedTimer->getTimeMS() - armingMotionStart >= armingDurationTH){
+				//TODO:pre arm check
 				mainMode = MAIN_MODE::ARM;
 			}
 		}else{

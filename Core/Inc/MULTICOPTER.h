@@ -18,6 +18,9 @@ namespace multicopter{
 struct INPUT{
 	float roll;
 	float pitch;
+
+	float rollRate;
+	float pitchRate;
 	float yawRate;
 	float thurottle;
 
@@ -92,6 +95,8 @@ struct MULTICOPTER {
 
 	std::string getCotrolValue();
 private:
+	void linarization(std::array<float, 4> &u);
+
 	PARAMETER _param;
 	TWO_DOF_PID<float> *rollController;
 	TWO_DOF_PID<float> *pitchController;
@@ -106,6 +111,8 @@ private:
 	void controllerPreProcess(const INPUT &input);
 	float armingMotionStart = 0;
 	float armingDurationTH = 1000; //ms
+
+	INPUT befInput = INPUT();
 
 	std::array<float, 4> controlValue;
 };

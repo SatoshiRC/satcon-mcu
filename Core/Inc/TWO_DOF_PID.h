@@ -37,6 +37,11 @@ struct TWO_DOF_PID {
 		elapsedTime = 0;
 	};
 	T controller(T reference, T state);
+	inline T controller(T reference, T Din, T Pin){
+		return controller(reference,Din,Pin,Pin);
+	}
+
+	T controller(T reference, T Din, T Pin, T Iin);
 	void setParam(TWO_DOF_PID_PARAM<T> &param){
 		this->param = param;
 	}
