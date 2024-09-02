@@ -32,8 +32,6 @@ std::array<float, 3> gyroValue;
 std::array<float, 3> AccelValue;
 
 void init(){
-	bool isInitializing = true;
-
 	SET_MASK_ICM20948_INTERRUPT();
 
 	HAL_TIM_PWM_Start(RED_LED);
@@ -79,13 +77,11 @@ void init(){
 
 	while(isInitializing){
 		isInitializing = !attitudeEstimate.isInitialized();
-		bool tmp = icm20948User.isCalibrated();
-		if(tmp == true){
+		if(icm20948User.isCalibrated()){
 			message("icm20948 calibration is finished",3);
 			_icm20948Callback = icm20948Callback;
-			__HAL_TIM_SET_COMPARE(ledTim, YELLOW_LED_CHANNEL, 400);
+			isInitializing |= false;
 		}
-		isInitializing = !tmp;
 //		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1));
 //		esc.setSpeed(0);
 		HAL_Delay(50);
@@ -132,6 +128,15 @@ void icm20948Callback(){
 	attitudeEstimate.setAccelValue(accel);
 	attitudeEstimate.setGyroValue(gyro);
 	attitudeEstimate.update();
+
+	if(isInitializing){
+		return;
+	}
+
+//	multicopterInput.rollRate = rollFilter.filter(gyro[1]);
+	multicopterInput.rollRate = 0.2*multicopterInput.rollRate - 0.8*gyro[0];
+	multicopterInput.pitchRate = 0.2*multicopterInput.pitchRate - 0.8*gyro[1];;
+	multicopterInput.yawRate = 0.2*multicopterInput.yawRate - 0.8*gyro[2];
 
 //	multicopterInput.rollRate = rollFilter.filter(gyro[1]);
 	multicopterInput.rollRate = 0.2*multicopterInput.rollRate - 0.8*gyro[0];

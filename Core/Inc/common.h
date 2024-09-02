@@ -25,6 +25,8 @@
 
 #include <array>
 
+bool isInitializing = true;
+
 #define RED_LED ledTim, TIM_CHANNEL_1
 #define YELLOW_LED ledTim, TIM_CHANNEL_2
 #define BLUE_LED ledTim, TIM_CHANNEL_3
