@@ -47,6 +47,10 @@ OUTPUT MULTICOPTER::controller(const INPUT &input){
 		return res;
 	}
 
+	smooth_angulerRate[0].push(input.rollRate);
+	smooth_angulerRate[1].push(input.pitchRate);
+	smooth_angulerRate[2].push(input.yawRate);
+
 	float refRoll = input.sbusRollNorm*_param.bankAngleLimit;
 	float refPitch = input.sbusPitchNorm*_param.bankAngleLimit;
 
@@ -67,9 +71,9 @@ OUTPUT MULTICOPTER::controller(const INPUT &input){
 	float pitchRateDiff = input.pitchRate - befInput.pitchRate;
 
 	std::array<float, 4> u;
-	u.at(3) = yawRateController->controller(refYawRate,0,input.yawRate-refYawRate);
-	u.at(1) = rollController->controller(refRollRate,rollRateDiff,input.rollRate-refRollRate);
-	u.at(2) = pitchController->controller(refPitchRate,pitchRateDiff,input.pitchRate-refPitchRate);
+	u.at(3) = yawRateController->controller(refYawRate,0,smooth_angulerRate[2].getAverage()-refYawRate);
+	u.at(1) = rollController->controller(refRollRate,rollRateDiff,smooth_angulerRate[0].getAverage()-refRollRate);
+	u.at(2) = pitchController->controller(refPitchRate,pitchRateDiff,smooth_angulerRate[1].getAverage()-refPitchRate);
 
 //	u.at(1) = rollController->controller(refRollRate, input.rollRate);
 //	u.at(2) = pitchController->controller(refPitchRate, input.pitchRate);
@@ -203,5 +207,10 @@ std::string MULTICOPTER::getRefValue(){
 				+ std::to_string((int16_t)(angulerVel[2]*180 / std::numbers::pi));
 }
 
+std::string MULTICOPTER::getSmoothValue(){
+	return std::to_string((int16_t)(smooth_angulerRate[0].getAverage()*180 / std::numbers::pi)) + ", "
+				+ std::to_string((int16_t)(smooth_angulerRate[1].getAverage()*180 / std::numbers::pi)) + ", "
+				+ std::to_string((int16_t)(smooth_angulerRate[2].getAverage()*180 / std::numbers::pi));
+}
 
 }

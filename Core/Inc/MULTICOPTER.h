@@ -10,6 +10,7 @@
 
 #include "Quaternion/Quaternion.h"
 #include "Quaternion/Vector3D/Vector3D.h"
+#include "MovingAverage/movingAverage.h"
 #include "TWO_DOF_PID.h"
 #include "functional"
 #include "string"
@@ -99,6 +100,8 @@ struct MULTICOPTER {
 	std::string getCotrolValue();
 
 	std::string getRefValue();
+
+	std::string getSmoothValue();
 private:
 	void linarization(std::array<float, 4> &u);
 
@@ -113,6 +116,7 @@ private:
 	uint64_t elapsedTime;
 	Vector3D<float> angulerVel;
 	Vector3D<float> refRate;
+	Vector3D<MovingAverage<float, 20>> smooth_angulerRate;
 
 	bool isFrameLost;
 
