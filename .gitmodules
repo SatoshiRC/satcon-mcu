@@ -19,3 +19,6 @@
 [submodule "Core/Lib/ringBuffer"]
 	path = Core/Lib/ringBuffer
 	url = git@github.com:NOKOLat/Ring-Buffer.git
+[submodule "Core/Lib/MovingAverage"]
+	path = Core/Lib/MovingAverage
+	url = git@github.com:NOKOLat/MovingAverage.git
