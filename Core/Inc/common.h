@@ -60,10 +60,10 @@ multicopter::MULTICOPTER *hmulticopter = new multicopter::MULTICOPTER(defaultPar
 multicopter::INPUT multicopterInput;
 
 std::array<ESC_UTILITY_SINGLE*, 4> escSingle = {
-    new ESC_UTILITY_SINGLE(&htim8,TIM_CHANNEL_1,1500,3000),
-    new ESC_UTILITY_SINGLE(&htim8,TIM_CHANNEL_2,1500,3000),
-    new ESC_UTILITY_SINGLE(&htim8,TIM_CHANNEL_3,1500,3000),
     new ESC_UTILITY_SINGLE(&htim8,TIM_CHANNEL_4,1500,3000),
+    new ESC_UTILITY_SINGLE(&htim8,TIM_CHANNEL_3,1500,3000),
+    new ESC_UTILITY_SINGLE(&htim8,TIM_CHANNEL_2,1500,3000),
+    new ESC_UTILITY_SINGLE(&htim8,TIM_CHANNEL_1,1500,3000),
 };
 ESC_UTILITY<4> esc(escSingle);
 
