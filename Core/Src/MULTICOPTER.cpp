@@ -27,10 +27,15 @@ MULTICOPTER::MULTICOPTER(PARAMETER &param, ElapsedTimer *elapsedTimer)
 	altitudeController = new TWO_DOF_PID(*param.altitude, elapsedTimer);
 	altitudeControlMode = param.altitudeControlMode;
 	isFrameLost = false;
+	elapsedTime = 0;
 }
 
 OUTPUT MULTICOPTER::controller(const INPUT &input){
 	OUTPUT res={};
+
+	float tmpElapsedTime = elapsedTimer->getTimeMS();
+	float dt = (tmpElapsedTime - elapsedTime)/1000.0;
+	elapsedTime = tmpElapsedTime;
 
 	controllerPreProcess(input);
 	if(mainMode != MAIN_MODE::ARM){
@@ -45,17 +50,30 @@ OUTPUT MULTICOPTER::controller(const INPUT &input){
 	float refRoll = input.sbusRollNorm*_param.bankAngleLimit;
 	float refPitch = input.sbusPitchNorm*_param.bankAngleLimit;
 
-	float refRollRate = 4*(refRoll - input.roll);
-	float refPitchRate = 4*(refPitch - input.pitch);
+	float refRollRate = sqrtController(refRoll - input.roll, dt, _param.bankAcceleLimit);
+	float refPitchRate = sqrtController(refPitch - input.pitch, dt, _param.bankAcceleLimit);
 	float refYawRate = input.sbusYawRateNorm*_param.yawRateLimit;
 
-	float rollRateDiff = input.rollRate;
-	float pitchRateDiff = input.pitchRate;
+	//Accele Limitation
+//	refRollRate = min((refRollRate - angulerVel[0])/dt, _param.bankAcceleLimit);
+//	refPitchRate = min((refPitchRate - angulerVel[1])/dt, _param.bankAcceleLimit);
+	// refRollRate = min((refPitchRate - angulerVel[1])/dt, _param.bankAcceleLimit);
+
+	angulerVel[0] = refRollRate;
+	angulerVel[1] = refPitchRate;
+	angulerVel[2] = refYawRate;
+
+	float rollRateDiff = input.rollRate - befInput.rollRate;
+	float pitchRateDiff = input.pitchRate - befInput.pitchRate;
 
 	std::array<float, 4> u;
-	u.at(3) = yawRateController->controller(refYawRate,0,input.yawRate);
-	u.at(1) = rollController->controller(refRollRate,0,input.rollRate);
-	u.at(2) = pitchController->controller(refPitch,0,input.pitchRate);
+//	u.at(3) = yawRateController->controller(refYawRate,0,refYawRate-input.yawRate);
+//	u.at(1) = rollController->controller(refRollRate,rollRateDiff,refRollRate-input.rollRate);
+//	u.at(2) = pitchController->controller(refPitchRate,pitchRateDiff,refPitchRate-input.pitchRate);
+
+	u.at(1) = rollController->controller(refRollRate, input.rollRate);
+	u.at(2) = pitchController->controller(refPitchRate, input.pitchRate);
+	u.at(3) = yawRateController->controller(refYawRate, input.yawRate);
 
 	switch(altitudeControlMode){
 		case ALTITUDE_CONTROL_MODE::ALTITUDE_FEEDBACK:
@@ -74,30 +92,29 @@ OUTPUT MULTICOPTER::controller(const INPUT &input){
 
 	controlValue = u;
 
-	res[0] = u[0] + u[1] + u[2] - u[3];
-	res[1] = u[0] + u[1] - u[2] + u[3];
-	res[2] = u[0] - u[1] + u[2] + u[3];
-	res[3] = u[0] - u[1] - u[2] - u[3];
+	res[0] = u[0] - u[1] + u[2] - u[3];
+	res[1] = u[0] - u[1] - u[2] + u[3];
+	res[2] = u[0] + u[1] + u[2] + u[3];
+	res[3] = u[0] + u[1] - u[2] - u[3];
 
-	for(auto &it:res){
-		if(it<0){
-			it = 0;
-		}else if(it>1.0){
-			it = 1.0;
-		}else{
-			it = std::sqrt(it);
-		}
+	if(std::isfinite(res[0])==false){
+		res[0] = 0;
 	}
 
 	for(auto &it:res){
-		if(it<0){
-			it = 0;
-		}else if(it>1.0){
-			it = 1.0;
-		}else{
-			it = std::sqrt(it);
-		}
+		constraintFloat(it,0,1);
+		it = std::sqrt(it);
 	}
+
+//	for(auto &it:res){
+//		if(it<0){
+//			it = 0;
+//		}else if(it>1.0){
+//			it = 1.0;
+//		}else{
+//			it = std::pow(it,2);
+//		}
+//	}
 
 	befInput = input;
 	return res;
@@ -152,7 +169,21 @@ void MULTICOPTER::controllerPreProcess(const INPUT &input){
 			armingMotionStart = 0;
 		}
 	}
+}
+
+float MULTICOPTER::sqrtController(float error, float deltaT, float secondOrderLim){
+	float res = 0;
 	
+	if(error>0){
+		res = sqrt(2.0*secondOrderLim*error-std::pow(secondOrderLim*deltaT,2));
+	}else if(error < 0){
+		res = -sqrt(2.0*secondOrderLim*(-error)-std::pow(secondOrderLim*deltaT,2));
+	}else{
+		res = 0;
+	}
+
+	constraintFloat(res, -std::abs(error)/deltaT, std::abs(error)/deltaT);
+	return res;
 }
 
 std::string MULTICOPTER::getCotrolValue(){

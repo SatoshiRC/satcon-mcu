@@ -9,6 +9,7 @@
 #define INC_MULTICOPTER_H_
 
 #include "Quaternion/Quaternion.h"
+#include "Quaternion/Vector3D/Vector3D.h"
 #include "TWO_DOF_PID.h"
 #include "functional"
 #include "string"
@@ -58,6 +59,7 @@ struct PARAMETER{
 	TWO_DOF_PID_PARAM<float> *altitude;
 	float bankAngleLimit;	//give roll and pitch limit angle in rad
 	float yawRateLimit;		//give yaw rate limit in rad per sec
+	float bankAcceleLimit;
 
 	ALTITUDE_CONTROL_MODE altitudeControlMode;
 
@@ -67,9 +69,10 @@ struct PARAMETER{
 	TWO_DOF_PID_PARAM<float> *altitude,
 	ALTITUDE_CONTROL_MODE altitudeControlMode = ALTITUDE_CONTROL_MODE::THROTTLE,
 	float bankAngleLimit = 0.1745,
+	float bankAcceleLimit = 15,
 	float yawRateLimit = 0.1745)
 	:roll(roll), pitch(pitch), yawRate(yawRate), altitude(altitude),
-	bankAngleLimit(bankAngleLimit), yawRateLimit(yawRateLimit), 
+	bankAngleLimit(bankAngleLimit),  bankAcceleLimit(bankAcceleLimit), yawRateLimit(yawRateLimit),
 	altitudeControlMode(altitudeControlMode)
 	{}
 };
@@ -105,6 +108,8 @@ private:
 	ALTITUDE_CONTROL_MODE altitudeControlMode;
 	MAIN_MODE mainMode;
 	ElapsedTimer *elapsedTimer;
+	float elapsedTime;
+	Vector3D<float> angulerVel;
 
 	bool isFrameLost;
 
@@ -115,6 +120,26 @@ private:
 	INPUT befInput = INPUT();
 
 	std::array<float, 4> controlValue;
+
+	static float max(float one, float two){
+		if(one<two){
+			return two;
+		}
+		return one;
+	}
+
+	static float min(float one, float two){
+		if(one<two){
+			return one;
+		}
+		return two;
+	}
+
+	float sqrtController(float error, float deltaT, float secondOrderLim);
+	inline void constraintFloat(float &in, float min, float max){
+		in = in<min?min:in;
+		in = in>max?max:in;
+	}
 };
 
 }
