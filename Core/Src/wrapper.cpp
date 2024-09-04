@@ -45,6 +45,18 @@ void init(){
 	__HAL_TIM_SET_COMPARE(ledTim, RED_LED_CHANNEL, 0);
 	__HAL_TIM_SET_COMPARE(ledTim, BLUE_LED_CHANNEL, 0);
 
+	esc.enable();
+	esc.calibration();
+//	HAL_Delay(5000);
+//	for(uint8_t n=0; n<4; n++){
+//		esc.setSpeed(n,0.1);
+//		HAL_Delay(3000);
+//		esc.setSpeed(n,0);
+//	}
+//	for(uint8_t n=0; n<4; n++){
+//		esc.setSpeed(n,0);
+//		HAL_Delay(3000);
+//	}
 
 	//start to receive sbus.
 	HAL_UART_Receive_DMA(huartSbus,hsbus.getReceiveBufferPtr(),hsbus.getDataLen());
@@ -157,9 +169,10 @@ void icm20948Callback(){
 //	multicopterInput.yawRate = yawRate;
 	auto res = hmulticopter->controller(multicopterInput);
 	esc.setSpeed(res);
-//	message(multicopter::to_string(res), 3);
+	message(multicopter::to_string(res)+", "+hmulticopter->getCotrolValue(), 3);
+//	message(hmulticopter->getRefValue()+", "+hmulticopter->getCotrolValue(),3);
 //	message(hmulticopter->getCotrolValue(), 3);
-	message(std::to_string(int16_t(roll*180/std::numbers::pi))+", "+std::to_string(int16_t(pitch*180/std::numbers::pi)),3);
+//	message(std::to_string(int16_t(roll*180/std::numbers::pi))+", "+std::to_string(int16_t(pitch*180/std::numbers::pi)),3);
 //	message(std::to_string(int16_t(	multicopterInput.rollRate*180/std::numbers::pi)));
 
 

@@ -38,6 +38,9 @@ struct TWO_DOF_PID {
 	};
 	T controller(T reference, T state);
 	inline T controller(T reference, T Din, T Pin){
+		if(std::isfinite(integral) == false){
+			integral = 0;
+		}
 		return controller(reference,Din,Pin,Pin);
 	}
 
@@ -47,13 +50,17 @@ struct TWO_DOF_PID {
 	}
 	void reset(){
 		integral = 0;
+		if(std::isfinite(integral) == false){
+			integral = 0;
+		}
+		elapsedTime = elapsedTimer->getTimeMS();
 	}
 private:
 	TWO_DOF_PID_PARAM<T> param;
 	T integral;
 	T befState;
 	ElapsedTimer *elapsedTimer;
-	float elapsedTime;
+	uint64_t elapsedTime;
 };
 
 #endif /* INC_TWO_DOF_PID_H_ */

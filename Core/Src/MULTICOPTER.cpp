@@ -33,8 +33,8 @@ MULTICOPTER::MULTICOPTER(PARAMETER &param, ElapsedTimer *elapsedTimer)
 OUTPUT MULTICOPTER::controller(const INPUT &input){
 	OUTPUT res={};
 
-	float tmpElapsedTime = elapsedTimer->getTimeMS();
-	float dt = (tmpElapsedTime - elapsedTime)/1000.0;
+	auto tmpElapsedTime = elapsedTimer->getCount();
+	float dt = (tmpElapsedTime - elapsedTime)/1000000.0;
 	elapsedTime = tmpElapsedTime;
 
 	controllerPreProcess(input);
@@ -67,13 +67,13 @@ OUTPUT MULTICOPTER::controller(const INPUT &input){
 	float pitchRateDiff = input.pitchRate - befInput.pitchRate;
 
 	std::array<float, 4> u;
-//	u.at(3) = yawRateController->controller(refYawRate,0,refYawRate-input.yawRate);
-//	u.at(1) = rollController->controller(refRollRate,rollRateDiff,refRollRate-input.rollRate);
-//	u.at(2) = pitchController->controller(refPitchRate,pitchRateDiff,refPitchRate-input.pitchRate);
+	u.at(3) = yawRateController->controller(refYawRate,0,input.yawRate-refYawRate);
+	u.at(1) = rollController->controller(refRollRate,rollRateDiff,input.rollRate-refRollRate);
+	u.at(2) = pitchController->controller(refPitchRate,pitchRateDiff,input.pitchRate-refPitchRate);
 
-	u.at(1) = rollController->controller(refRollRate, input.rollRate);
-	u.at(2) = pitchController->controller(refPitchRate, input.pitchRate);
-	u.at(3) = yawRateController->controller(refYawRate, input.yawRate);
+//	u.at(1) = rollController->controller(refRollRate, input.rollRate);
+//	u.at(2) = pitchController->controller(refPitchRate, input.pitchRate);
+//	u.at(3) = yawRateController->controller(refYawRate, input.yawRate);
 
 	switch(altitudeControlMode){
 		case ALTITUDE_CONTROL_MODE::ALTITUDE_FEEDBACK:
@@ -92,10 +92,10 @@ OUTPUT MULTICOPTER::controller(const INPUT &input){
 
 	controlValue = u;
 
-	res[0] = u[0] - u[1] + u[2] - u[3];
-	res[1] = u[0] - u[1] - u[2] + u[3];
-	res[2] = u[0] + u[1] + u[2] + u[3];
-	res[3] = u[0] + u[1] - u[2] - u[3];
+	res[0] = u[0] + u[1] + u[2] - u[3];
+	res[1] = u[0] + u[1] - u[2] + u[3];
+	res[2] = u[0] - u[1] + u[2] + u[3];
+	res[3] = u[0] - u[1] - u[2] - u[3];
 
 	if(std::isfinite(res[0])==false){
 		res[0] = 0;
@@ -183,6 +183,10 @@ float MULTICOPTER::sqrtController(float error, float deltaT, float secondOrderLi
 	}
 
 	constraintFloat(res, -std::abs(error)/deltaT, std::abs(error)/deltaT);
+
+	if(std::isfinite(res) == false){
+		res = 0;
+	}
 	return res;
 }
 
@@ -191,6 +195,12 @@ std::string MULTICOPTER::getCotrolValue(){
 			+ std::to_string((int16_t)(controlValue[1]*100)) + ", "
 			+ std::to_string((int16_t)(controlValue[2]*100)) + ", "
 			+ std::to_string((int16_t)(controlValue[3]*100));
+}
+
+std::string MULTICOPTER::getRefValue(){
+	return std::to_string((int16_t)(angulerVel[0]*180 / std::numbers::pi)) + ", "
+				+ std::to_string((int16_t)(angulerVel[1]*180 / std::numbers::pi)) + ", "
+				+ std::to_string((int16_t)(angulerVel[2]*180 / std::numbers::pi));
 }
 
 

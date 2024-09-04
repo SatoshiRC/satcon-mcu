@@ -97,6 +97,8 @@ struct MULTICOPTER {
 	}
 
 	std::string getCotrolValue();
+
+	std::string getRefValue();
 private:
 	void linarization(std::array<float, 4> &u);
 
@@ -108,8 +110,9 @@ private:
 	ALTITUDE_CONTROL_MODE altitudeControlMode;
 	MAIN_MODE mainMode;
 	ElapsedTimer *elapsedTimer;
-	float elapsedTime;
+	uint64_t elapsedTime;
 	Vector3D<float> angulerVel;
+	Vector3D<float> refRate;
 
 	bool isFrameLost;
 
