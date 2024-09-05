@@ -47,15 +47,20 @@ OUTPUT MULTICOPTER::controller(const INPUT &input){
 		return res;
 	}
 
+	Vector3D<float> befAngulerRate;
+	for(uint8_t n=0; n<0; n++){
+		befAngulerRate[n] = smooth_angulerRate[n].getAverage();
+	}
+
 	smooth_angulerRate[0].push(input.rollRate);
 	smooth_angulerRate[1].push(input.pitchRate);
 	smooth_angulerRate[2].push(input.yawRate);
 
 	float refRoll = input.sbusRollNorm*_param.bankAngleLimit;
-	float refPitch = input.sbusPitchNorm*_param.bankAngleLimit;
+	float refPitch = -input.sbusPitchNorm*_param.bankAngleLimit;
 
 	float refRollRate = sqrtController(refRoll - input.roll, dt, _param.bankAcceleLimit);
-	float refPitchRate = sqrtController(refPitch - input.pitch, dt, _param.bankAcceleLimit);
+	float refPitchRate = -sqrtController(refPitch - input.pitch, dt, _param.bankAcceleLimit);
 	float refYawRate = input.sbusYawRateNorm*_param.yawRateLimit;
 
 	//Accele Limitation
@@ -67,8 +72,8 @@ OUTPUT MULTICOPTER::controller(const INPUT &input){
 	angulerVel[1] = refPitchRate;
 	angulerVel[2] = refYawRate;
 
-	float rollRateDiff = input.rollRate - befInput.rollRate;
-	float pitchRateDiff = input.pitchRate - befInput.pitchRate;
+	float rollRateDiff = smooth_angulerRate[0].getAverage() - befAngulerRate[0];
+	float pitchRateDiff = smooth_angulerRate[1].getAverage() - befAngulerRate[1];
 
 	std::array<float, 4> u;
 	u.at(3) = yawRateController->controller(refYawRate,0,smooth_angulerRate[2].getAverage()-refYawRate);

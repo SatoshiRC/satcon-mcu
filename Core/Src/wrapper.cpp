@@ -149,14 +149,14 @@ void icm20948Callback(){
 	}
 
 //	multicopterInput.rollRate = rollFilter.filter(gyro[1]);
-	multicopterInput.rollRate = 0.2*multicopterInput.rollRate - 0.8*gyro[0];
-	multicopterInput.pitchRate = 0.2*multicopterInput.pitchRate - 0.8*gyro[1];;
-	multicopterInput.yawRate = 0.2*multicopterInput.yawRate - 0.8*gyro[2];
+//	multicopterInput.rollRate = 0.2*multicopterInput.rollRate - 0.8*gyro[0];
+//	multicopterInput.pitchRate = 0.2*multicopterInput.pitchRate - 0.8*gyro[1];;
+//	multicopterInput.yawRate = 0.2*multicopterInput.yawRate - 0.8*gyro[2];
 
 //	multicopterInput.rollRate = rollFilter.filter(gyro[1]);
-	multicopterInput.rollRate = 0.2*multicopterInput.rollRate - 0.8*gyro[0];
-	multicopterInput.pitchRate = 0.2*multicopterInput.pitchRate - 0.8*gyro[1];;
-	multicopterInput.yawRate = 0.2*multicopterInput.yawRate - 0.8*gyro[2];
+	multicopterInput.rollRate = -gyro[0];
+	multicopterInput.pitchRate = gyro[1];;
+	multicopterInput.yawRate = gyro[2];
 
 	auto attitude = attitudeEstimate.getAttitude();
 	auto z_machienFrame = attitude.rotateVector({0,0,1.0});
@@ -169,11 +169,11 @@ void icm20948Callback(){
 //	multicopterInput.yawRate = yawRate;
 	auto res = hmulticopter->controller(multicopterInput);
 	esc.setSpeed(res);
-	message(multicopter::to_string(res)+", "+hmulticopter->getCotrolValue(), 3);
-//	message(hmulticopter->getRefValue()+", "+hmulticopter->getCotrolValue(),3);
+//	message(multicopter::to_string(res)+", "+hmulticopter->getCotrolValue(), 3);
+	message(hmulticopter->getRefValue()+", "+hmulticopter->getSmoothValue()+", "+hmulticopter->getCotrolValue()+", "+multicopter::to_string(res),3);
 //	message(hmulticopter->getCotrolValue(), 3);
 //	message(std::to_string(int16_t(roll*180/std::numbers::pi))+", "+std::to_string(int16_t(pitch*180/std::numbers::pi)),3);
-//	message(std::to_string(int16_t(	multicopterInput.rollRate*180/std::numbers::pi)));
+//	message(std::to_string(int16_t(	multicopterInput.rollRate*180/std::numbers::pi))+", "+std::to_string(int16_t(multicopterInput.pitchRate*180/std::numbers::pi)));
 
 
 }
