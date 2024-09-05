@@ -37,7 +37,7 @@ TIM_HandleTypeDef *ledTim = &htim1;
 
 
 UART_HandleTypeDef *huartSbus = &huart5;
-UART_HandleTypeDef *huartXbee = &huart4;
+UART_HandleTypeDef *huartDebug = &huart2;
 SBUS_HANDLE hsbus(lower,center, upper);
 
 static std::function<void(void)> _icm20948Callback = [](){};

@@ -211,13 +211,13 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 //		str += std::to_string(int8_t(multicopterInput.sbusAltitudeNorm*100))+", ";
 //		message(str, 3);
 		__HAL_TIM_SET_COMPARE(ledTim, RED_LED_CHANNEL, 500);
-	}else if(huart == huartXbee){
+	}else if(huart == huartDebug){
 
 	}
 }
 
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size){
-	if(huart == huartXbee){
+	if(huart == huartDebug){
 		if(huart->RxEventType == HAL_UART_RXEVENT_TC){
 
 		}
@@ -225,7 +225,7 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size){
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
-	if(huart == huartXbee){
+	if(huart == huartDebug){
 
 	}
 }
@@ -233,10 +233,10 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
 static void message(std::string str, uint8_t level){
 	if(level <= messageLevel){
 		str += "\n";
-		if(huart4.gState == HAL_UART_STATE_READY){
+		if(huartDebug->gState == HAL_UART_STATE_READY){
 			static std::string messageBuffer;
 			messageBuffer = std::string(str);
-			HAL_UART_Transmit_DMA(&huart4, (uint8_t *)messageBuffer.c_str(), messageBuffer.length());
+			HAL_UART_Transmit_DMA(huartDebug, (uint8_t *)messageBuffer.c_str(), messageBuffer.length());
 		}
 	}
 	return;
