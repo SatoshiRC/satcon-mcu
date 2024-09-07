@@ -47,7 +47,7 @@ OUTPUT MULTICOPTER::controller(const INPUT &input){
 		return res;
 	}
 
-	Vector3D<float> befAngulerRate;
+	Vector3D<float> befAngulerRate = {};
 	for(uint8_t n=0; n<0; n++){
 		befAngulerRate[n] = smooth_angulerRate[n].getAverage();
 	}
@@ -57,11 +57,11 @@ OUTPUT MULTICOPTER::controller(const INPUT &input){
 	smooth_angulerRate[2].push(input.yawRate);
 
 	float refRoll = input.sbusRollNorm*_param.bankAngleLimit;
-	float refPitch = -input.sbusPitchNorm*_param.bankAngleLimit;
+	float refPitch = input.sbusPitchNorm*_param.bankAngleLimit;
 
 	float refRollRate = sqrtController(refRoll - input.roll, dt, _param.bankAcceleLimit);
-	float refPitchRate = -sqrtController(refPitch - input.pitch, dt, _param.bankAcceleLimit);
-	float refYawRate = input.sbusYawRateNorm*_param.yawRateLimit;
+	float refPitchRate = sqrtController(refPitch - input.pitch, dt, _param.bankAcceleLimit);
+	float refYawRate = -input.sbusYawRateNorm*_param.yawRateLimit;
 
 	//Accele Limitation
 //	refRollRate = min((refRollRate - angulerVel[0])/dt, _param.bankAcceleLimit);
@@ -74,11 +74,12 @@ OUTPUT MULTICOPTER::controller(const INPUT &input){
 
 	float rollRateDiff = smooth_angulerRate[0].getAverage() - befAngulerRate[0];
 	float pitchRateDiff = smooth_angulerRate[1].getAverage() - befAngulerRate[1];
+	float yawRateDiff = smooth_angulerRate[2].getAverage() - befAngulerRate[2];
 
 	std::array<float, 4> u;
-	u.at(3) = yawRateController->controller(refYawRate,0,smooth_angulerRate[2].getAverage()-refYawRate);
-	u.at(1) = rollController->controller(refRollRate,rollRateDiff,smooth_angulerRate[0].getAverage()-refRollRate);
-	u.at(2) = pitchController->controller(refPitchRate,pitchRateDiff,smooth_angulerRate[1].getAverage()-refPitchRate);
+	u.at(3) = yawRateController->controller(refYawRate,yawRateDiff,refYawRate - smooth_angulerRate[2].getAverage());
+	u.at(1) = rollController->controller(refRollRate,rollRateDiff,refRollRate - smooth_angulerRate[0].getAverage());
+	u.at(2) = pitchController->controller(refPitchRate,pitchRateDiff,refPitchRate - smooth_angulerRate[1].getAverage());
 
 //	u.at(1) = rollController->controller(refRollRate, input.rollRate);
 //	u.at(2) = pitchController->controller(refPitchRate, input.pitchRate);
@@ -91,6 +92,8 @@ OUTPUT MULTICOPTER::controller(const INPUT &input){
 		case ALTITUDE_CONTROL_MODE::THROTTLE:
 			u.at(0) = (input.sbusAltitudeNorm + 1.0) * 0.5;
 			break;
+		case ALTITUDE_CONTROL_MODE::RELATIVE_THROTTLE:
+			u.at(0) = integrateThurottle(input.sbusAltitudeNorm, dt);
 	}
 
 //	linarization(u);
@@ -101,10 +104,10 @@ OUTPUT MULTICOPTER::controller(const INPUT &input){
 
 	controlValue = u;
 
-	res[0] = u[0] + u[1] + u[2] - u[3];
-	res[1] = u[0] + u[1] - u[2] + u[3];
-	res[2] = u[0] - u[1] + u[2] + u[3];
-	res[3] = u[0] - u[1] - u[2] - u[3];
+	res[0] = u[0] - u[1] + u[2] + u[3];
+	res[1] = u[0] - u[1] - u[2] - u[3];
+	res[2] = u[0] + u[1] + u[2] - u[3];
+	res[3] = u[0] + u[1] - u[2] + u[3];
 
 	if(std::isfinite(res[0])==false){
 		res[0] = 0;
@@ -178,6 +181,25 @@ void MULTICOPTER::controllerPreProcess(const INPUT &input){
 			armingMotionStart = 0;
 		}
 	}
+}
+
+float MULTICOPTER::integrateThurottle(float throttleNorm, float dt){
+	float deadZone = 0.01;
+	float element = 0;
+	if(std::abs(throttleNorm) < deadZone){
+		element = 0;
+	}else{
+		if(throttleNorm > 0){
+			element = throttleNorm - deadZone;
+		}else{
+			element = throttleNorm + deadZone;
+		}
+		constraintFloat(element,-1,1);
+
+		throttle_integral += element * dt * 2.0;
+	}
+	constraintFloat(throttle_integral,0,1);
+	return throttle_integral;
 }
 
 float MULTICOPTER::sqrtController(float error, float deltaT, float secondOrderLim){

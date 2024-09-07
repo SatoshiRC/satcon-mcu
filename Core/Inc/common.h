@@ -55,7 +55,7 @@ HighPassFilter yawRateFilter(281.3,1,1/std::sqrt(2.0f));
 ElapsedTimer *elapsedTimer = new ElapsedTimer(&htim5, 1000000);
 Madgwick attitudeEstimate(elapsedTimer,imuFrame);
 
-multicopter::PARAMETER defaultParam(rollParam, rollParam, yawRateParam,altitudeParam, initialAltitudeControl, initialBankAngleLim, initialYawRateLim);
+multicopter::PARAMETER defaultParam(rollParam, rollParam, yawRateParam,altitudeParam, initialAltitudeControl, initialBankAngleLim, initialBankAcceleLim ,initialYawRateLim);
 multicopter::MULTICOPTER *hmulticopter = new multicopter::MULTICOPTER(defaultParam,elapsedTimer);
 multicopter::INPUT multicopterInput;
 

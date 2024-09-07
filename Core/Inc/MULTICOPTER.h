@@ -43,6 +43,7 @@ std::string to_string(OUTPUT arg);
 
 enum class ALTITUDE_CONTROL_MODE{
 	THROTTLE,
+	RELATIVE_THROTTLE,
 	ALTITUDE_FEEDBACK,
 };
 
@@ -147,7 +148,10 @@ private:
 		in = in<min?min:in;
 		in = in>max?max:in;
 	}
+	float integrateThurottle(float rawThrottle, float dt);
+	float throttle_integral = 0;
 };
+
 
 }
 #endif /* INC_MULTICOPTER_H_ */

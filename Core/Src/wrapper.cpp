@@ -196,11 +196,10 @@ void icm20948Callback(){
 	auto res = hmulticopter->controller(multicopterInput);
 	esc.setSpeed(res);
 
-//	message(attitude.string()+", "+std::to_string(int16_t(roll*180/std::numbers::pi))+", "+std::to_string(int16_t(pitch*180/std::numbers::pi))+", "+std::to_string(int16_t(yaw*180/std::numbers::pi)));
+//	message(std::to_string(int16_t(roll*180/std::numbers::pi))+", "+std::to_string(int16_t(pitch*180/std::numbers::pi))+", "+std::to_string(int16_t(yaw*180/std::numbers::pi)));
 //	message(multicopter::to_string(res)+", "+hmulticopter->getCotrolValue(), 3);
 	message(hmulticopter->getRefValue()+", "+hmulticopter->getSmoothValue()+", "+hmulticopter->getCotrolValue()+", "+multicopter::to_string(res),3);
 //	message(hmulticopter->getCotrolValue(), 3);
-//	message(std::to_string(int16_t(roll*180/std::numbers::pi))+", "+std::to_string(int16_t(pitch*180/std::numbers::pi)),3);
 //	message(std::to_string(int16_t(	multicopterInput.rollRate*180/std::numbers::pi))+", "+std::to_string(int16_t(multicopterInput.pitchRate*180/std::numbers::pi)));
 
 
@@ -233,7 +232,12 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 		}
 
 		esc.setSpeed(hmulticopter->controller(multicopterInput));
-//		std::string str= std::to_string(int8_t(multicopterInput.sbusRollNorm*100))+", ";
+		std::string str;
+
+//		for(uint8_t n=0; n<10; n++){
+//			str += std::to_string(hsbus.getData()[n])+", ";
+//		}
+//		str= std::to_string(int8_t(multicopterInput.sbusRollNorm*100))+", ";
 //		str += std::to_string(int8_t(multicopterInput.sbusPitchNorm*100))+", ";
 //		str += std::to_string(int8_t(multicopterInput.sbusYawRateNorm*100))+", ";
 //		str += std::to_string(int8_t(multicopterInput.sbusAltitudeNorm*100))+", ";
