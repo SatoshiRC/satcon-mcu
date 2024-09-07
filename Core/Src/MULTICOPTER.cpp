@@ -101,10 +101,10 @@ OUTPUT MULTICOPTER::controller(const INPUT &input){
 
 	controlValue = u;
 
-	res[0] = u[0] - u[1] + u[2] - u[3];
-	res[1] = u[0] - u[1] - u[2] + u[3];
-	res[2] = u[0] + u[1] + u[2] + u[3];
-	res[3] = u[0] + u[1] - u[2] - u[3];
+	res[0] = u[0] + u[1] + u[2] - u[3];
+	res[1] = u[0] + u[1] - u[2] + u[3];
+	res[2] = u[0] - u[1] + u[2] + u[3];
+	res[3] = u[0] - u[1] - u[2] - u[3];
 
 	if(std::isfinite(res[0])==false){
 		res[0] = 0;

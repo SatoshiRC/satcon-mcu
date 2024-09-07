@@ -45,13 +45,17 @@ void init(){
 	__HAL_TIM_SET_COMPARE(ledTim, RED_LED_CHANNEL, 0);
 	__HAL_TIM_SET_COMPARE(ledTim, BLUE_LED_CHANNEL, 0);
 
+#ifdef DEBUG
 	esc.enable();
 	esc.calibration();
+#endif
 //	HAL_Delay(5000);
 //	for(uint8_t n=0; n<4; n++){
-//		esc.setSpeed(n,0.1);
+//		std::array<float, 4> sp={};
+//		sp[n] = 0.1;
+//		esc.setSpeed(sp);
 //		HAL_Delay(3000);
-//		esc.setSpeed(n,0);
+//		esc.setSpeed(0);
 //	}
 //	for(uint8_t n=0; n<4; n++){
 //		esc.setSpeed(n,0);
@@ -159,9 +163,31 @@ void icm20948Callback(){
 	multicopterInput.yawRate = gyro[2];
 
 	auto attitude = attitudeEstimate.getAttitude();
+
+	auto heading = attitude.rotateVector({1.0,0,0});
+	float xyProjectionY = std::hypot(heading[0],heading[1]);
+	heading[0]/=xyProjectionY;
+	heading[1]/=xyProjectionY;
+	float yaw = 0;
+	float yaw2 = 0;
+	if(xyProjectionY > 0.001){
+		yaw = std::atan2(heading[1],heading[0]);
+		yaw2 = yaw / 2.0;
+	}
+	auto invYaw = Quaternion<float>(std::cos(yaw2),0,0,-std::sin(yaw2));
+	attitude = attitude * invYaw;
+
 	auto z_machienFrame = attitude.rotateVector({0,0,1.0});
-	float roll = std::asin(z_machienFrame[0]);
-	float pitch = std::asin(z_machienFrame[1]);
+	float xyProjectionZ = std::hypot(z_machienFrame[0],z_machienFrame[1]);
+	float _roll = 0;
+	float _pitch = 0;
+	if(xyProjectionZ > 0.001){
+		_roll = std::asin(z_machienFrame[0]);
+		_pitch = -std::asin(z_machienFrame[1]);
+	}
+	auto tmpVec = invYaw.rotateVector({_pitch,_roll,0});
+	float roll = -tmpVec[0];
+	float pitch = tmpVec[1];
 //	float yawRate = gyro[2];
 
 	multicopterInput.roll = roll;
@@ -169,6 +195,8 @@ void icm20948Callback(){
 //	multicopterInput.yawRate = yawRate;
 	auto res = hmulticopter->controller(multicopterInput);
 	esc.setSpeed(res);
+
+//	message(attitude.string()+", "+std::to_string(int16_t(roll*180/std::numbers::pi))+", "+std::to_string(int16_t(pitch*180/std::numbers::pi))+", "+std::to_string(int16_t(yaw*180/std::numbers::pi)));
 //	message(multicopter::to_string(res)+", "+hmulticopter->getCotrolValue(), 3);
 	message(hmulticopter->getRefValue()+", "+hmulticopter->getSmoothValue()+", "+hmulticopter->getCotrolValue()+", "+multicopter::to_string(res),3);
 //	message(hmulticopter->getCotrolValue(), 3);
