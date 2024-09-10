@@ -21,6 +21,7 @@ struct DeltaTime{
 	void update_dt(){
 		uint64_t count = elapsedTimer->getCount();
 		uint64_t delta = count - befCount;
+		befCount = count;
 		dt = delta / 1000000.0;
 	}
 
