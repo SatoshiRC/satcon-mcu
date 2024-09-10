@@ -14,6 +14,7 @@
 #include "TWO_DOF_PID.h"
 #include "functional"
 #include "string"
+#include "delta_time.h"
 
 namespace multicopter{
 
@@ -74,13 +75,13 @@ struct PARAMETER{
 	float bankAcceleLimit = 15,
 	float yawRateLimit = 0.1745)
 	:roll(roll), pitch(pitch), yawRate(yawRate), altitude(altitude),
-	bankAngleLimit(bankAngleLimit),  bankAcceleLimit(bankAcceleLimit), yawRateLimit(yawRateLimit),
+	bankAngleLimit(bankAngleLimit), yawRateLimit(yawRateLimit), bankAcceleLimit(bankAcceleLimit),
 	altitudeControlMode(altitudeControlMode)
 	{}
 };
 
 struct MULTICOPTER {
-	MULTICOPTER(PARAMETER &param, ElapsedTimer *elapsedTimer);
+	MULTICOPTER(PARAMETER &param, DeltaTime *deltaTimer);
 	void setControlParameter(PARAMETER param){
 		this->_param = param;
 	};
@@ -113,7 +114,7 @@ private:
 	TWO_DOF_PID<float> *altitudeController;
 	ALTITUDE_CONTROL_MODE altitudeControlMode;
 	MAIN_MODE mainMode;
-	ElapsedTimer *elapsedTimer;
+	DeltaTime *deltaTimer;
 	uint64_t elapsedTime;
 	Vector3D<float> angulerVel;
 	Vector3D<float> refRate;
@@ -148,7 +149,13 @@ private:
 		in = in<min?min:in;
 		in = in>max?max:in;
 	}
-	float integrateThurottle(float rawThrottle, float dt);
+
+	/*
+	 * @brief : integrate throttle in the case of RELATIVE_THROTTLE mode
+	 * @params : normalized throttle value as -1 to 1
+	 * @params : step time in seconds	
+	 */
+	float integrateThrottle(float throttleNorm, float dt);
 	float throttle_integral = 0;
 };
 

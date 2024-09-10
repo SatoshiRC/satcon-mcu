@@ -16,15 +16,15 @@ std::string to_string(OUTPUT arg){
 }
 
 
-MULTICOPTER::MULTICOPTER(PARAMETER &param, ElapsedTimer *elapsedTimer)
-:_param(param),elapsedTimer(elapsedTimer)
+MULTICOPTER::MULTICOPTER(PARAMETER &param, DeltaTime *deltaTimer)
+:_param(param),deltaTimer(deltaTimer)
 {
 	mainMode = MAIN_MODE::DISARM;
 	
-	rollController = new TWO_DOF_PID(*param.roll, elapsedTimer);
-	pitchController = new TWO_DOF_PID(*param.pitch, elapsedTimer);
-	yawRateController = new TWO_DOF_PID(*param.yawRate, elapsedTimer);
-	altitudeController = new TWO_DOF_PID(*param.altitude, elapsedTimer);
+	rollController = new TWO_DOF_PID(*param.roll, deltaTimer);
+	pitchController = new TWO_DOF_PID(*param.pitch, deltaTimer);
+	yawRateController = new TWO_DOF_PID(*param.yawRate, deltaTimer);
+	altitudeController = new TWO_DOF_PID(*param.altitude, deltaTimer);
 	altitudeControlMode = param.altitudeControlMode;
 	isFrameLost = false;
 	elapsedTime = 0;
@@ -33,9 +33,7 @@ MULTICOPTER::MULTICOPTER(PARAMETER &param, ElapsedTimer *elapsedTimer)
 OUTPUT MULTICOPTER::controller(const INPUT &input){
 	OUTPUT res={};
 
-	auto tmpElapsedTime = elapsedTimer->getCount();
-	float dt = (tmpElapsedTime - elapsedTime)/1000000.0;
-	elapsedTime = tmpElapsedTime;
+	float dt = deltaTimer->getDelta();
 
 	controllerPreProcess(input);
 	if(mainMode != MAIN_MODE::ARM){
@@ -93,7 +91,7 @@ OUTPUT MULTICOPTER::controller(const INPUT &input){
 			u.at(0) = (input.sbusAltitudeNorm + 1.0) * 0.5;
 			break;
 		case ALTITUDE_CONTROL_MODE::RELATIVE_THROTTLE:
-			u.at(0) = integrateThurottle(input.sbusAltitudeNorm, dt);
+			u.at(0) = integrateThrottle(input.sbusAltitudeNorm, dt);
 	}
 
 //	linarization(u);
@@ -157,10 +155,10 @@ void MULTICOPTER::controllerPreProcess(const INPUT &input){
 
 	if(mainMode == MAIN_MODE::DISARM && isArming(input)){
 		mainMode = MAIN_MODE::ARMING;
-		armingMotionStart = elapsedTimer->getTimeMS();
+		armingMotionStart = deltaTimer->getTimeMS();
 	}else if(mainMode == MAIN_MODE::ARMING){
 		if(isArming(input)){
-			if(armingMotionStart != 0 && elapsedTimer->getTimeMS() - armingMotionStart >= armingDurationTH){
+			if(armingMotionStart != 0 && deltaTimer->getTimeMS() - armingMotionStart >= armingDurationTH){
 				//TODO:pre arm check
 				mainMode = MAIN_MODE::ARM;
 			}
@@ -170,10 +168,10 @@ void MULTICOPTER::controllerPreProcess(const INPUT &input){
 		}
 	}else if(mainMode == MAIN_MODE::ARM && isDisArming(input)){
 		mainMode = MAIN_MODE::DISARMING;
-		armingMotionStart = elapsedTimer->getTimeMS();
+		armingMotionStart = deltaTimer->getTimeMS();
 	}else if(mainMode == MAIN_MODE::DISARMING){
 		if(isDisArming(input)){
-			if(armingMotionStart != 0 &&  elapsedTimer->getTimeMS() - armingMotionStart >= armingDurationTH){
+			if(armingMotionStart != 0 &&  deltaTimer->getTimeMS() - armingMotionStart >= armingDurationTH){
 				mainMode = MAIN_MODE::DISARM;
 			}
 		}else{
@@ -183,7 +181,7 @@ void MULTICOPTER::controllerPreProcess(const INPUT &input){
 	}
 }
 
-float MULTICOPTER::integrateThurottle(float throttleNorm, float dt){
+float MULTICOPTER::integrateThrottle(float throttleNorm, float dt){
 	float deadZone = 0.01;
 	float element = 0;
 	if(std::abs(throttleNorm) < deadZone){

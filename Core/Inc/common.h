@@ -9,7 +9,7 @@
 #define INC_COMMON_H_
 
 #include "ICM20948_USER.h"
-#include "elapsedTimer/elapsedTimer.h"
+#include "delta_time.h"
 #include "ESC_UTILITY/ESC_UTILITY.h"
 
 #include "AttitudeEstimation.h"
@@ -53,10 +53,11 @@ HighPassFilter yawRateFilter(281.3,1,1/std::sqrt(2.0f));
 
 
 ElapsedTimer *elapsedTimer = new ElapsedTimer(&htim5, 1000000);
-Madgwick attitudeEstimate(elapsedTimer,imuFrame);
+DeltaTime *deltaTimer = new DeltaTime(elapsedTimer);
+Madgwick attitudeEstimate(deltaTimer,imuFrame);
 
-multicopter::PARAMETER defaultParam(rollParam, rollParam, yawRateParam,altitudeParam, initialAltitudeControl, initialBankAngleLim, initialBankAcceleLim ,initialYawRateLim);
-multicopter::MULTICOPTER *hmulticopter = new multicopter::MULTICOPTER(defaultParam,elapsedTimer);
+multicopter::PARAMETER defaultParam(rollParam, pitchParam, yawRateParam,altitudeParam, initialAltitudeControl, initialBankAngleLim, initialBankAcceleLim ,initialYawRateLim);
+multicopter::MULTICOPTER *hmulticopter = new multicopter::MULTICOPTER(defaultParam,deltaTimer);
 multicopter::INPUT multicopterInput;
 
 std::array<ESC_UTILITY_SINGLE*, 4> escSingle = {

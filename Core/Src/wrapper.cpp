@@ -65,10 +65,9 @@ void init(){
 	//start to receive sbus.
 	HAL_UART_Receive_DMA(huartSbus,hsbus.getReceiveBufferPtr(),hsbus.getDataLen());
 
-#ifdef DEBUG
 	HAL_TIM_PWM_Start_IT(&htim14, TIM_CHANNEL_1);
 	__HAL_TIM_ENABLE_IT(&htim14, TIM_IT_UPDATE);
-#endif
+
 
 	if(elapsedTimer->selfTest() == false){
 		message("ERROR : elapsed timer freaquency is not correct",0);
@@ -141,6 +140,8 @@ void icm20948CallbackCalibration(){
 void icm20948Callback(){
 	Vector3D<float> accel;
 	Vector3D<float> gyro;
+
+	deltaTimer->update_dt();
 
 	icm20948User.getIMU(accel, gyro);
 

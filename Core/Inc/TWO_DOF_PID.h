@@ -9,7 +9,7 @@
 #define INC_TWO_DOF_PID_H_
 
 #include <cmath>
-#include "elapsedTimer/elapsedTimer.h"
+#include "delta_time.h"
 
 template<class T = float>
 struct TWO_DOF_PID_PARAM{
@@ -30,11 +30,10 @@ struct TWO_DOF_PID_PARAM{
 
 template<class T = float>
 struct TWO_DOF_PID {
-	TWO_DOF_PID(TWO_DOF_PID_PARAM<T> &param, ElapsedTimer *elapsedTimer)
-	:param(param),elapsedTimer(elapsedTimer){
+	TWO_DOF_PID(TWO_DOF_PID_PARAM<T> &param, DeltaTime *deltaTimer)
+	:param(param),deltaTimer(deltaTimer){
 		integral = 0;
 		befState = 0;
-		elapsedTime = 0;
 	};
 	T controller(T reference, T state);
 	inline T controller(T reference, T Din, T Pin){
@@ -53,14 +52,12 @@ struct TWO_DOF_PID {
 		if(std::isfinite(integral) == false){
 			integral = 0;
 		}
-		elapsedTime = elapsedTimer->getTimeMS();
 	}
 private:
 	TWO_DOF_PID_PARAM<T> param;
 	T integral;
 	T befState;
-	ElapsedTimer *elapsedTimer;
-	uint64_t elapsedTime;
+	DeltaTime *deltaTimer;
 };
 
 #endif /* INC_TWO_DOF_PID_H_ */

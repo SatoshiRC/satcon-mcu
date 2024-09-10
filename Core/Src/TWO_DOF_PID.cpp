@@ -9,10 +9,6 @@
 
 template<class T>
 T TWO_DOF_PID<T>::controller(T reference, T state){
-	float time = elapsedTimer->getTimeMS();
-	float diffTime = (time - elapsedTime)/1000.0;
-	elapsedTime = time;
-
 	T diff = state - befState;
 	T error = reference - state;
 //	integral += error*diffTime;
@@ -24,9 +20,7 @@ template double TWO_DOF_PID<double>::controller(double,double);
 
 template<class T>
 T TWO_DOF_PID<T>::controller(T reference, T Din, T Pin, T Iin){
-	uint64_t time = elapsedTimer->getCount();
-	float diffTime = (time - elapsedTime)/1000000.0;
-	elapsedTime = time;
+	float diffTime = deltaTimer->getDelta();
 
 	if(integral + Iin*diffTime > param.upperControlLimit){
 		integral = param.upperControlLimit / param.pGain;
