@@ -6,7 +6,8 @@
 #include "Quaternion/Quaternion.h"
 
 
-auto *rollParam = new TWO_DOF_PID_PARAM<float>(0,0.020 ,0.003,0.00001,0.1,-0.1);
+auto *rollParam = new TWO_DOF_PID_PARAM<float>(0,0.013 ,0.0001,0.00003,0.1,-0.1);
+auto *pitchParam = new TWO_DOF_PID_PARAM<float>(0,0.03 ,0.005,0.00002,0.1,-0.1);
 //auto *rollParam = new TWO_DOF_PID_PARAM<float>(0,0.0 ,0.000,0.000,0.2,-0.2);
 //auto *rollParam = new TWO_DOF_PID_PARAM<float>(0,1,0.0000,0.0000,0.03,-0.03);
 auto *yawRateParam = new TWO_DOF_PID_PARAM<float>(0.2,0.1,0.01,0.00001,0.05,-0.05);
