@@ -56,16 +56,21 @@ ElapsedTimer *elapsedTimer = new ElapsedTimer(&htim5, 1000000);
 DeltaTime *deltaTimer = new DeltaTime(elapsedTimer);
 Madgwick attitudeEstimate(deltaTimer,imuFrame);
 
-multicopter::PARAMETER defaultParam(rollParam, pitchParam, yawRateParam,altitudeParam, initialAltitudeControl, initialBankAngleLim, initialBankAcceleLim ,initialYawRateLim);
+multicopter::PARAMETER defaultParam(rollParam, pitchParam, yawRateParam,altitudeParam, initialAltitudeControl, initialBankAngleLim, initialBankAcceleLim ,initialYawRateLim, initialFrameType);
 multicopter::MULTICOPTER *hmulticopter = new multicopter::MULTICOPTER(defaultParam,deltaTimer);
 multicopter::INPUT multicopterInput;
 
-std::array<ESC_UTILITY_SINGLE*, 4> escSingle = {
+std::array<ESC_UTILITY_SINGLE*, 8> escSingle = {
     new ESC_UTILITY_SINGLE(&htim8,TIM_CHANNEL_4,1500,3000),
     new ESC_UTILITY_SINGLE(&htim8,TIM_CHANNEL_3,1500,3000),
     new ESC_UTILITY_SINGLE(&htim8,TIM_CHANNEL_2,1500,3000),
     new ESC_UTILITY_SINGLE(&htim8,TIM_CHANNEL_1,1500,3000),
+
+	new ESC_UTILITY_SINGLE(&htim8,TIM_CHANNEL_4,1500,3000),
+	new ESC_UTILITY_SINGLE(&htim8,TIM_CHANNEL_3,1500,3000),
+	new ESC_UTILITY_SINGLE(&htim8,TIM_CHANNEL_2,1500,3000),
+	new ESC_UTILITY_SINGLE(&htim8,TIM_CHANNEL_1,1500,3000),
 };
-ESC_UTILITY<4> esc(escSingle);
+ESC_UTILITY<8> esc(escSingle);
 
 #endif /* INC_COMMON_H_ */

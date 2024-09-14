@@ -39,7 +39,7 @@ struct INPUT{
 };
 
 //give the motor output in persent(%)
-typedef std::array<float, 4> OUTPUT;
+typedef std::array<float, 8> OUTPUT;
 std::string to_string(OUTPUT arg);
 
 enum class ALTITUDE_CONTROL_MODE{
@@ -55,6 +55,12 @@ enum class MAIN_MODE{
 	DISARMING,
 };
 
+enum class FRAME_TYPE{
+	OCTA,
+	QUAD_TOP,
+	QUAD_BOTTOM,
+};
+
 struct PARAMETER{
 	TWO_DOF_PID_PARAM<float> *roll;
 	TWO_DOF_PID_PARAM<float> *pitch;
@@ -65,6 +71,7 @@ struct PARAMETER{
 	float bankAcceleLimit;
 
 	ALTITUDE_CONTROL_MODE altitudeControlMode;
+	FRAME_TYPE frameType;
 
 	PARAMETER(TWO_DOF_PID_PARAM<float> *roll,
 	TWO_DOF_PID_PARAM<float> *pitch,
@@ -73,10 +80,11 @@ struct PARAMETER{
 	ALTITUDE_CONTROL_MODE altitudeControlMode = ALTITUDE_CONTROL_MODE::THROTTLE,
 	float bankAngleLimit = 0.1745,
 	float bankAcceleLimit = 15,
-	float yawRateLimit = 0.1745)
+	float yawRateLimit = 0.1745,
+	FRAME_TYPE frameType = FRAME_TYPE::QUAD_TOP)
 	:roll(roll), pitch(pitch), yawRate(yawRate), altitude(altitude),
 	bankAngleLimit(bankAngleLimit), yawRateLimit(yawRateLimit), bankAcceleLimit(bankAcceleLimit),
-	altitudeControlMode(altitudeControlMode)
+	altitudeControlMode(altitudeControlMode),frameType(frameType)
 	{}
 };
 

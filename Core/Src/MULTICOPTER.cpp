@@ -102,29 +102,24 @@ OUTPUT MULTICOPTER::controller(const INPUT &input){
 
 	controlValue = u;
 
-	res[0] = u[0] - u[1] + u[2] + u[3];
-	res[1] = u[0] - u[1] - u[2] - u[3];
-	res[2] = u[0] + u[1] + u[2] - u[3];
-	res[3] = u[0] + u[1] - u[2] + u[3];
-
-	if(std::isfinite(res[0])==false){
-		res[0] = 0;
+	const auto frameType = _param.frameType;
+	if(frameType == FRAME_TYPE::OCTA || frameType == FRAME_TYPE::QUAD_TOP){
+		res[0] = u[0] - u[1] + u[2] + u[3];
+		res[1] = u[0] - u[1] - u[2] - u[3];
+		res[2] = u[0] + u[1] + u[2] - u[3];
+		res[3] = u[0] + u[1] - u[2] + u[3];
+	}
+	if(frameType == FRAME_TYPE::OCTA || frameType == FRAME_TYPE::QUAD_BOTTOM){
+		res[4] = u[0] - u[1] + u[2] - u[3];
+		res[5] = u[0] - u[1] - u[2] + u[3];
+		res[6] = u[0] + u[1] + u[2] + u[3];
+		res[7] = u[0] + u[1] - u[2] - u[3];
 	}
 
 	for(auto &it:res){
 		constraintFloat(it,0,1);
 		it = std::sqrt(it);
 	}
-
-//	for(auto &it:res){
-//		if(it<0){
-//			it = 0;
-//		}else if(it>1.0){
-//			it = 1.0;
-//		}else{
-//			it = std::pow(it,2);
-//		}
-//	}
 
 	befInput = input;
 	return res;

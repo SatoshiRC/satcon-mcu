@@ -13,6 +13,7 @@ auto *pitchParam = new TWO_DOF_PID_PARAM<float>(0,0.03 ,0.005,0.00002,0.1,-0.1);
 auto *yawRateParam = new TWO_DOF_PID_PARAM<float>(0.2,0.1,0.01,0.00001,0.05,-0.05);
 auto *altitudeParam = new TWO_DOF_PID_PARAM<float>(0,0.1,0,0.05,0.2,-0.2);
 multicopter::ALTITUDE_CONTROL_MODE initialAltitudeControl = multicopter::ALTITUDE_CONTROL_MODE::RELATIVE_THROTTLE;
+multicopter::FRAME_TYPE initialFrameType = multicopter::FRAME_TYPE::OCTA;
 float initialBankAngleLim = 30*std::numbers::pi / 180.0;
 float initialBankAcceleLim = 360*std::numbers::pi / 180.0;
 float initialYawRateLim = 90*std::numbers::pi / 180.0;

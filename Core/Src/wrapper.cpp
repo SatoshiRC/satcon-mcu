@@ -45,22 +45,22 @@ void init(){
 	__HAL_TIM_SET_COMPARE(ledTim, RED_LED_CHANNEL, 0);
 	__HAL_TIM_SET_COMPARE(ledTim, BLUE_LED_CHANNEL, 0);
 
-#ifdef DEBUG
+
 	esc.enable();
 	esc.calibration();
-#endif
-//	HAL_Delay(5000);
-//	for(uint8_t n=0; n<4; n++){
-//		std::array<float, 4> sp={};
-//		sp[n] = 0.1;
-//		esc.setSpeed(sp);
-//		HAL_Delay(3000);
-//		esc.setSpeed(0);
-//	}
-//	for(uint8_t n=0; n<4; n++){
-//		esc.setSpeed(n,0);
-//		HAL_Delay(3000);
-//	}
+
+	HAL_Delay(5000);
+	for(uint8_t n=0; n<8; n++){
+		std::array<float, 8> sp={};
+		sp[n] = 0.1;
+		esc.setSpeed(sp);
+		HAL_Delay(3000);
+		esc.setSpeed(0);
+	}
+	for(uint8_t n=0; n<4; n++){
+		esc.setSpeed(n,0);
+		HAL_Delay(3000);
+	}
 
 	//start to receive sbus.
 	HAL_UART_Receive_DMA(huartSbus,hsbus.getReceiveBufferPtr(),hsbus.getDataLen());
@@ -93,17 +93,16 @@ void init(){
 	CLEAR_MASK_ICM20948_INTERRUPT();
 	message("ICM20948 is initialized");
 
-	while(isInitializing){
-		isInitializing = !attitudeEstimate.isInitialized();
-		if(icm20948User.isCalibrated()){
-			message("icm20948 calibration is finished",3);
-			_icm20948Callback = icm20948Callback;
-			isInitializing |= false;
-		}
-//		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1));
-//		esc.setSpeed(0);
+	while(icm20948User.isCalibrated() == false){
+		HAL_Delay(100);
+	}
+	message("icm20948 calibration is finished",3);
+	_icm20948Callback = icm20948Callback;
+
+	while(attitudeEstimate.isInitialized() == false){
 		HAL_Delay(50);
 	}
+	message("attitude estimation method is initialized");
 	__HAL_TIM_SET_COMPARE(ledTim, YELLOW_LED_CHANNEL, 400);
 	HAL_Delay(100);
 
@@ -114,6 +113,7 @@ void init(){
 	__HAL_TIM_SET_COMPARE(ledTim, YELLOW_LED_CHANNEL, 500);
 	HAL_Delay(10);
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
+	isInitializing = false;
 	message("Initialization is complete",1);
 }
 
@@ -197,6 +197,7 @@ void icm20948Callback(){
 	auto res = hmulticopter->controller(multicopterInput);
 	esc.setSpeed(res);
 
+//	message(std::to_string(uint16_t(deltaTimer->getDelta()*1000*1000)));
 //	message(std::to_string(int16_t(roll*180/std::numbers::pi))+", "+std::to_string(int16_t(pitch*180/std::numbers::pi))+", "+std::to_string(int16_t(yaw*180/std::numbers::pi)));
 //	message(multicopter::to_string(res)+", "+hmulticopter->getCotrolValue(), 3);
 	message(hmulticopter->getRefValue()+", "+hmulticopter->getSmoothValue()+", "+hmulticopter->getCotrolValue()+", "+multicopter::to_string(res),3);
@@ -232,7 +233,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 			return;
 		}
 
-		esc.setSpeed(hmulticopter->controller(multicopterInput));
+//		esc.setSpeed(hmulticopter->controller(multicopterInput));
 		std::string str;
 
 //		for(uint8_t n=0; n<10; n++){
@@ -282,10 +283,12 @@ void tim14Callback(){
 		__HAL_TIM_SET_COMPARE(ledTim, RED_LED_CHANNEL, 100);
 		__HAL_TIM_CLEAR_FLAG(htim,TIM_IT_CC1);
 		HAL_UART_AbortReceive(huartSbus);
+		HAL_DMA_Abort(huartSbus->hdmarx);
 		HAL_UART_Receive_DMA(huartSbus,hsbus.getReceiveBufferPtr(),hsbus.getDataLen());
 		hmulticopter->setRcFrameLost();
 	}else if((sr & TIM_IT_UPDATE) == (TIM_IT_UPDATE)){
 		__HAL_TIM_SET_COMPARE(ledTim, RED_LED_CHANNEL, 300);
+		HAL_DMA_Abort(huartSbus->hdmarx);
 		HAL_UART_Receive_DMA(huartSbus,hsbus.getReceiveBufferPtr(),hsbus.getDataLen());
 		__HAL_TIM_CLEAR_FLAG(htim,TIM_IT_UPDATE);
 		hmulticopter->rcFailSafe();
