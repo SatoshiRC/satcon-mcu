@@ -9,10 +9,14 @@
 
 namespace multicopter{
 std::string to_string(OUTPUT arg){
-	return std::to_string((int8_t)(arg[0]*100)) + ", "
-			+ std::to_string((int8_t)(arg[1]*100)) + ", "
-			+ std::to_string((int8_t)(arg[2]*100)) + ", "
-			+ std::to_string((int8_t)(arg[3]*100));
+	std::string str = {};
+
+	uint8_t n=0;
+	for(; n<arg.size()-1; n++){
+		str += std::to_string((int8_t)(arg[n]*100)) + ", ";
+	}
+	str += std::to_string((int8_t)(arg[n]));
+	return str;
 }
 
 
