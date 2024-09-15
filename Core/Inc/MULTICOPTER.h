@@ -112,6 +112,8 @@ struct MULTICOPTER {
 	std::string getRefValue();
 
 	std::string getSmoothValue();
+
+	Vector3D<MovingAverage<float, 10>> smooth_angulerRate;
 private:
 	void linarization(std::array<float, 4> &u);
 
@@ -126,7 +128,6 @@ private:
 	uint64_t elapsedTime;
 	Vector3D<float> angulerVel;
 	Vector3D<float> refRate;
-	Vector3D<MovingAverage<float, 20>> smooth_angulerRate;
 
 	bool isFrameLost;
 

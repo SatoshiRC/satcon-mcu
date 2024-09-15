@@ -46,21 +46,16 @@ void init(){
 	__HAL_TIM_SET_COMPARE(ledTim, BLUE_LED_CHANNEL, 0);
 
 
-	esc.enable();
-	esc.calibration();
-
-	HAL_Delay(5000);
-	for(uint8_t n=0; n<8; n++){
-		std::array<float, 8> sp={};
-		sp[n] = 0.1;
-		esc.setSpeed(sp);
-		HAL_Delay(3000);
-		esc.setSpeed(0);
-	}
-	for(uint8_t n=0; n<4; n++){
-		esc.setSpeed(n,0);
-		HAL_Delay(3000);
-	}
+//	esc.enable();
+//
+//	HAL_Delay(5000);
+//	for(uint8_t n=0; n<8; n++){
+//		std::array<float, 8> sp={};
+//		sp[n] = 0.1;
+//		esc.setSpeed(sp);
+//		HAL_Delay(3000);
+//		esc.setSpeed(0);
+//	}
 
 	//start to receive sbus.
 	HAL_UART_Receive_DMA(huartSbus,hsbus.getReceiveBufferPtr(),hsbus.getDataLen());
@@ -197,10 +192,13 @@ void icm20948Callback(){
 	auto res = hmulticopter->controller(multicopterInput);
 	esc.setSpeed(res);
 
+//	message(gyro.string() +", " +accel.string2());
 //	message(std::to_string(uint16_t(deltaTimer->getDelta()*1000*1000)));
-//	message(std::to_string(int16_t(roll*180/std::numbers::pi))+", "+std::to_string(int16_t(pitch*180/std::numbers::pi))+", "+std::to_string(int16_t(yaw*180/std::numbers::pi)));
+//	message(std::to_string(int16_t(roll*180/std::numbers::pi))+", "+std::to_string(int16_t(pitch*180/std::numbers::pi))+", "+std::to_string(int16_t(yaw*180/std::numbers::pi))+", "+hmulticopter->getSmoothValue());
+//	message(std::to_string(int16_t(yaw*180/std::numbers::pi))+", "+ std::to_string(int16_t(hmulticopter->smooth_angulerRate[2].getAverage()*180/std::numbers::pi)) + ", " + std::to_string(int16_t(gyro[2]*180/std::numbers::pi)));
+//	message(std::to_string(int16_t(roll*180/std::numbers::pi))+", "+ std::to_string(int16_t(hmulticopter->smooth_angulerRate[0].getAverage()*180/std::numbers::pi)) + ", " + std::to_string(int16_t(multicopterInput.rollRate*180/std::numbers::pi)) + ", " + std::to_string(int16_t(gyro[0]*180/std::numbers::pi)));
 //	message(multicopter::to_string(res)+", "+hmulticopter->getCotrolValue(), 3);
-	message(hmulticopter->getRefValue()+", "+hmulticopter->getSmoothValue()+", "+hmulticopter->getCotrolValue()+", "+multicopter::to_string(res),3);
+//	message(hmulticopter->getRefValue()+", "+hmulticopter->getSmoothValue()+", "+hmulticopter->getCotrolValue()+", "+multicopter::to_string(res),3);
 //	message(hmulticopter->getCotrolValue(), 3);
 //	message(std::to_string(int16_t(	multicopterInput.rollRate*180/std::numbers::pi))+", "+std::to_string(int16_t(multicopterInput.pitchRate*180/std::numbers::pi)));
 
