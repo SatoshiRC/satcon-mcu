@@ -26,12 +26,15 @@ void ICM20948_USER::confirmConnection(){
 void ICM20948_USER::init(){
     icm20948->reset();
     HAL_Delay(100);
-    icm20948->accelConfig(ICM20948::AccelSensitivity::SENS_2G,true,7);
-    icm20948->gyroConfig(ICM20948::GyroSensitivity::SENS_250, true, 7);
+	icm20948->pwrmgmt1(0x01);
+	HAL_Delay(100);
+
+    icm20948->accelConfig(ICM20948::AccelSensitivity::SENS_4G,true,7);
+    icm20948->gyroConfig(ICM20948::GyroSensitivity::SENS_250, true, 0);
 
     uint8_t tmp=3;
     icm20948->memWrite(ICM20948::REGISTER::BANK2::GYRO_SMPLRT_DIV, tmp);
-    tmp=4;
+    tmp=0;
     icm20948->memWrite(ICM20948::REGISTER::BANK2::GYRO_CONFIG_2, tmp);
     tmp=0;
     icm20948->memWrite(ICM20948::REGISTER::BANK2::ACCEL_CONFIG_2, tmp);
@@ -39,10 +42,10 @@ void ICM20948_USER::init(){
     icm20948->memWrite(ICM20948::REGISTER::BANK2::ACCEL_SMPLRT_DIV_2, tmp);
     icm20948->changeUserBank(ICM20948::REGISTER::BANK::BANK0);
 
-    icm20948->pwrmgmt1(0x01);
+//    icm20948->pwrmgmt1(0x01);
     icm20948->intPinConfig(0b00010000);
     icm20948->intenable1();
-    icm20948->pwrmgmt2(0b0);
+//    icm20948->pwrmgmt2(0b0);
 }
 
 uint16_t ICM20948_USER::calibration(Vector3D<float> &gyro){
