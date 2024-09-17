@@ -20,8 +20,8 @@ std::string to_string(OUTPUT arg){
 }
 
 
-MULTICOPTER::MULTICOPTER(PARAMETER &param, DeltaTime *deltaTimer)
-:_param(param),deltaTimer(deltaTimer)
+MULTICOPTER::MULTICOPTER(Vector3D<MovingAverage<float, 10>*> *smooth_angulerRate, PARAMETER &param, DeltaTime *deltaTimer)
+:smooth_angulerRate(smooth_angulerRate),_param(param),deltaTimer(deltaTimer)
 {
 	mainMode = MAIN_MODE::DISARM;
 	
@@ -51,12 +51,12 @@ OUTPUT MULTICOPTER::controller(const INPUT &input){
 
 	Vector3D<float> befAngulerRate = {};
 	for(uint8_t n=0; n<0; n++){
-		befAngulerRate[n] = smooth_angulerRate[n].getAverage();
+		befAngulerRate[n] = smooth_angulerRate->at(n)->getAverage();
 	}
 
-	smooth_angulerRate[0].push(input.rollRate);
-	smooth_angulerRate[1].push(input.pitchRate);
-	smooth_angulerRate[2].push(input.yawRate);
+	smooth_angulerRate->at(0)->push(input.rollRate);
+	smooth_angulerRate->at(1)->push(input.pitchRate);
+	smooth_angulerRate->at(2)->push(input.yawRate);
 
 	float refRoll = input.sbusRollNorm*_param.bankAngleLimit;
 	float refPitch = input.sbusPitchNorm*_param.bankAngleLimit;
@@ -74,14 +74,14 @@ OUTPUT MULTICOPTER::controller(const INPUT &input){
 	angulerVel[1] = refPitchRate;
 	angulerVel[2] = refYawRate;
 
-	float rollRateDiff = smooth_angulerRate[0].getAverage() - befAngulerRate[0];
-	float pitchRateDiff = smooth_angulerRate[1].getAverage() - befAngulerRate[1];
-	float yawRateDiff = smooth_angulerRate[2].getAverage() - befAngulerRate[2];
+	float rollRateDiff = smooth_angulerRate->at(0)->getAverage() - befAngulerRate[0];
+	float pitchRateDiff = smooth_angulerRate->at(1)->getAverage() - befAngulerRate[1];
+	float yawRateDiff = smooth_angulerRate->at(2)->getAverage() - befAngulerRate[2];
 
 	std::array<float, 4> u;
-	u.at(3) = yawRateController->controller(refYawRate,yawRateDiff,refYawRate - smooth_angulerRate[2].getAverage());
-	u.at(1) = rollController->controller(refRollRate,rollRateDiff,refRollRate - smooth_angulerRate[0].getAverage());
-	u.at(2) = pitchController->controller(refPitchRate,pitchRateDiff,refPitchRate - smooth_angulerRate[1].getAverage());
+	u.at(3) = yawRateController->controller(refYawRate,yawRateDiff,refYawRate - smooth_angulerRate->at(2)->getAverage());
+	u.at(1) = rollController->controller(refRollRate,rollRateDiff,refRollRate - smooth_angulerRate->at(0)->getAverage());
+	u.at(2) = pitchController->controller(refPitchRate,pitchRateDiff,refPitchRate - smooth_angulerRate->at(1)->getAverage());
 
 //	u.at(1) = rollController->controller(refRollRate, input.rollRate);
 //	u.at(2) = pitchController->controller(refPitchRate, input.pitchRate);
@@ -202,10 +202,16 @@ float MULTICOPTER::integrateThrottle(float throttleNorm, float dt){
 float MULTICOPTER::sqrtController(float error, float deltaT, float secondOrderLim){
 	float res = 0;
 	
-	if(error>0){
-		res = sqrt(2.0*secondOrderLim*error-std::pow(secondOrderLim*deltaT,2));
-	}else if(error < 0){
-		res = -sqrt(2.0*secondOrderLim*(-error)-std::pow(secondOrderLim*deltaT,2));
+	auto th = 2.0*std::abs(error) - secondOrderLim*std::pow(deltaT,2);
+
+	if(th > 0){
+		if(error>0){
+			res = sqrt(2.0*secondOrderLim*error-std::pow(secondOrderLim*deltaT,2));
+		}else if(error < 0){
+			res = -sqrt(2.0*secondOrderLim*(-error)-std::pow(secondOrderLim*deltaT,2));
+		}else{
+			res = 0;
+		}
 	}else{
 		res = 0;
 	}
@@ -219,10 +225,10 @@ float MULTICOPTER::sqrtController(float error, float deltaT, float secondOrderLi
 }
 
 std::string MULTICOPTER::getCotrolValue(){
-	return std::to_string((int16_t)(controlValue[0]*100)) + ", "
-			+ std::to_string((int16_t)(controlValue[1]*100)) + ", "
-			+ std::to_string((int16_t)(controlValue[2]*100)) + ", "
-			+ std::to_string((int16_t)(controlValue[3]*100));
+	return std::to_string((int16_t)(controlValue[0]*1000)) + ", "
+			+ std::to_string((int16_t)(controlValue[1]*1000)) + ", "
+			+ std::to_string((int16_t)(controlValue[2]*1000)) + ", "
+			+ std::to_string((int16_t)(controlValue[3]*1000));
 }
 
 std::string MULTICOPTER::getRefValue(){
@@ -232,9 +238,9 @@ std::string MULTICOPTER::getRefValue(){
 }
 
 std::string MULTICOPTER::getSmoothValue(){
-	return std::to_string((int16_t)(smooth_angulerRate[0].getAverage()*180 / std::numbers::pi)) + ", "
-				+ std::to_string((int16_t)(smooth_angulerRate[1].getAverage()*180 / std::numbers::pi)) + ", "
-				+ std::to_string((int16_t)(smooth_angulerRate[2].getAverage()*180 / std::numbers::pi));
+	return std::to_string((int16_t)(smooth_angulerRate->at(0)->getAverage()*180 / std::numbers::pi)) + ", "
+				+ std::to_string((int16_t)(smooth_angulerRate->at(1)->getAverage()*180 / std::numbers::pi)) + ", "
+				+ std::to_string((int16_t)(smooth_angulerRate->at(2)->getAverage()*180 / std::numbers::pi));
 }
 
 }

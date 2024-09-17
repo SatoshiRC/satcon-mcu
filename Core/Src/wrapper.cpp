@@ -47,6 +47,7 @@ void init(){
 
 
 //	esc.enable();
+//	esc.calibration();
 //
 //	HAL_Delay(5000);
 //	for(uint8_t n=0; n<8; n++){
@@ -155,19 +156,22 @@ void icm20948Callback(){
 
 //	multicopterInput.rollRate = rollFilter.filter(gyro[1]);
 	multicopterInput.rollRate = -gyro[0];
-	multicopterInput.pitchRate = gyro[1];;
+	multicopterInput.pitchRate = gyro[1];
 	multicopterInput.yawRate = gyro[2];
 
 	auto attitude = attitudeEstimate.getAttitude();
 
+#ifdef MAGDWICK
 	auto heading = attitude.rotateVector({1.0,0,0});
 	float xyProjectionY = std::hypot(heading[0],heading[1]);
 	heading[0]/=xyProjectionY;
 	heading[1]/=xyProjectionY;
 	float yaw = 0;
 	float yaw2 = 0;
+	static float befYaw = 0;
 	if(xyProjectionY > 0.001){
 		yaw = std::atan2(heading[1],heading[0]);
+		yawAverage.push(yaw);
 		yaw2 = yaw / 2.0;
 	}
 	auto invYaw = Quaternion<float>(std::cos(yaw2),0,0,-std::sin(yaw2));
@@ -184,23 +188,63 @@ void icm20948Callback(){
 	auto tmpVec = invYaw.rotateVector({_pitch,_roll,0});
 	float roll = -tmpVec[0];
 	float pitch = tmpVec[1];
-//	float yawRate = gyro[2];
+#endif
+
+	auto heading = attitude.rotateVector({1.0,0,0});
+	float xyProjectionY = std::hypot(heading[0],heading[1]);
+	heading[0]/=xyProjectionY;
+	heading[1]/=xyProjectionY;
+	float yaw = 0;
+	float yaw2 = 0;
+	static float befYaw = 0;
+	if(xyProjectionY > 0.001){
+		yaw = std::atan2(heading[1],heading[0]);
+		yawAverage.push(yaw);
+		yaw2 = yaw / 2.0;
+	}
+	auto invYaw = Quaternion<float>(std::cos(yaw2),0,0,-std::sin(yaw2));
+	auto rawAttitude = attitude;
+	attitude = attitude * invYaw;
+
+	auto z_machienFrame = attitude.rotateVector({0,0,1.0});
+	float xyProjectionZ = std::hypot(z_machienFrame[0],z_machienFrame[1]);
+	float _roll = 0;
+	float _pitch = 0;
+	if(xyProjectionZ > 0.001){
+		_roll = std::asin(z_machienFrame[0]);
+		_pitch = -std::asin(z_machienFrame[1]);
+	}
+	auto tmpVec = invYaw.rotateVector({_pitch,_roll,0});
+	float roll = -tmpVec[0];
+	float pitch = tmpVec[1];
+
+	float yawRate = 0;
+	float filterdYaw = yawAverage.getAverage();
+	if(befYaw<degToRad(-170) && filterdYaw > degToRad(170)){
+		befYaw += 2*std::numbers::pi;
+	}else if(befYaw>degToRad(170) && filterdYaw < degToRad(-170)){
+		befYaw -= 2*std::numbers::pi;
+	}
+	yawRate = (filterdYaw - befYaw)/deltaTimer->getDelta();
+	befYaw = filterdYaw;
 
 	multicopterInput.roll = roll;
 	multicopterInput.pitch = pitch;
-//	multicopterInput.yawRate = yawRate;
+	multicopterInput.yawRate = yawRate;
 	auto res = hmulticopter->controller(multicopterInput);
 	esc.setSpeed(res);
 
 //	message(gyro.string() +", " +accel.string2());
-//	message(std::to_string(uint16_t(deltaTimer->getDelta()*1000*1000)));
-//	message(std::to_string(int16_t(roll*180/std::numbers::pi))+", "+std::to_string(int16_t(pitch*180/std::numbers::pi))+", "+std::to_string(int16_t(yaw*180/std::numbers::pi))+", "+hmulticopter->getSmoothValue());
-//	message(std::to_string(int16_t(yaw*180/std::numbers::pi))+", "+ std::to_string(int16_t(hmulticopter->smooth_angulerRate[2].getAverage()*180/std::numbers::pi)) + ", " + std::to_string(int16_t(gyro[2]*180/std::numbers::pi)));
+//	message(std::to_string(int16_t(roll*180/std::numbers::pi))+", "+std::to_string(int16_t(pitch*180/std::numbers::pi))+", "+std::to_string(int16_t(yaw*180/std::numbers::pi))+", "+hmulticopter->getSmoothValue()+", "+std::to_string(int16_t(yawRate*180/std::numbers::pi)));
+//	message(std::to_string(int16_t(yaw*180/std::numbers::pi))+", "+ std::to_string(int16_t(smooth_angulerRate->at(2)->getAverage()*180/std::numbers::pi)) + ", " + std::to_string(int16_t(gyro[2]*180/std::numbers::pi))+ ", " + std::to_string(int16_t(yawRate*180/std::numbers::pi)));
 //	message(std::to_string(int16_t(roll*180/std::numbers::pi))+", "+ std::to_string(int16_t(hmulticopter->smooth_angulerRate[0].getAverage()*180/std::numbers::pi)) + ", " + std::to_string(int16_t(multicopterInput.rollRate*180/std::numbers::pi)) + ", " + std::to_string(int16_t(gyro[0]*180/std::numbers::pi)));
+//	message(std::to_string(int16_t(roll*180/std::numbers::pi))+", "+ std::to_string(int16_t(hmulticopter->smooth_angulerRate[0].getAverage()*180/std::numbers::pi))+", "+);
 //	message(multicopter::to_string(res)+", "+hmulticopter->getCotrolValue(), 3);
-//	message(hmulticopter->getRefValue()+", "+hmulticopter->getSmoothValue()+", "+hmulticopter->getCotrolValue()+", "+multicopter::to_string(res),3);
+	message(hmulticopter->getRefValue()+", "+hmulticopter->getSmoothValue()+", "+hmulticopter->getCotrolValue()+", "+std::to_string(int16_t(roll*180/std::numbers::pi))+", "+std::to_string(int16_t(pitch*180/std::numbers::pi)),3);
 //	message(hmulticopter->getCotrolValue(), 3);
 //	message(std::to_string(int16_t(	multicopterInput.rollRate*180/std::numbers::pi))+", "+std::to_string(int16_t(multicopterInput.pitchRate*180/std::numbers::pi)));
+//	message(std::to_string(int16_t(yaw*180/std::numbers::pi)));
+//	message(attitude.string()+", "+rawAttitude.string());
 
 
 }

@@ -22,9 +22,9 @@ template<class T>
 T TWO_DOF_PID<T>::controller(T reference, T Din, T Pin, T Iin){
 	float diffTime = deltaTimer->getDelta();
 
-	if(integral + Iin*diffTime > param.upperControlLimit){
+	if((integral + Iin*diffTime)*param.pGain > param.upperControlLimit){
 		integral = param.upperControlLimit / param.pGain;
-	}else if(integral + Iin*diffTime < param.lowerControlLimit){
+	}else if((integral + Iin*diffTime)*param.pGain < param.lowerControlLimit){
 		integral = param.lowerControlLimit / param.pGain;
 	}else{
 		integral += Iin*diffTime;
@@ -54,14 +54,6 @@ T TWO_DOF_PID<T>::controller(T reference, T Din, T Pin, T Iin){
 		integral -= tmp;
 	}else{
 		integral -= antiWindup;
-	}
-
-	if(std::isfinite(integral) == false){
-		integral = 0;
-	}
-
-	if(std::isfinite(res)==false){
-		res = 0;
 	}
 
 	return res;

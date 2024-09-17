@@ -37,9 +37,6 @@ struct TWO_DOF_PID {
 	};
 	T controller(T reference, T state);
 	inline T controller(T reference, T Din, T Pin){
-		if(std::isfinite(integral) == false){
-			integral = 0;
-		}
 		return controller(reference,Din,Pin,Pin);
 	}
 
@@ -53,9 +50,9 @@ struct TWO_DOF_PID {
 			integral = 0;
 		}
 	}
+	T integral;
 private:
 	TWO_DOF_PID_PARAM<T> param;
-	T integral;
 	T befState;
 	DeltaTime *deltaTimer;
 };

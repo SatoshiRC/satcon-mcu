@@ -5,19 +5,25 @@
 #include "SBUS_Handller.h"
 #include "Quaternion/Quaternion.h"
 
-
-auto *rollParam = new TWO_DOF_PID_PARAM<float>(0,0.009 ,0.0028,0.000018,0.1,-0.1);
+//auto *rollParam = new TWO_DOF_PID_PARAM<float>(0,0.017 ,0.001,0.00014,0.15,-0.15);
+auto *rollParam = new TWO_DOF_PID_PARAM<float>(0.00,0.025 ,0.000,0.00001,0.15,-0.15);
+//auto *rollParam = new TWO_DOF_PID_PARAM<float>(0,0.00975 ,0.000975,0.00018,0.15,-0.15);
+//auto *rollParam = new TWO_DOF_PID_PARAM<float>(0,0.00975 ,0.000975,0.000109,0.15,-0.15);
+auto *pitchParam = rollParam;
+//auto *rollParam = new TWO_DOF_PID_PARAM<float>(0,0.050 ,0.0028,0.000018,0.1,-0.1);
 //auto *pitchParam = new TWO_DOF_PID_PARAM<float>(0,0.006 ,0.0015,0.000018,0.1,-0.1);
+//auto *pitchParam = new TWO_DOF_PID_PARAM<float>(0,0.04 ,0.0028,0.000018,0.1,-0.1);
 //auto *rollParam = new TWO_DOF_PID_PARAM<float>(0,0.0 ,0.000,0.000,0.2,-0.2);
-auto *pitchParam = new TWO_DOF_PID_PARAM<float>(0,0.0 ,0.000,0.000,0.2,-0.2);
+//auto *pitchParam = new TWO_DOF_PID_PARAM<float>(0,0.0 ,0.000,0.000,0.2,-0.2);
 //auto *rollParam = new TWO_DOF_PID_PARAM<float>(0,1,0.0000,0.0000,0.03,-0.03);
 //auto *yawRateParam = new TWO_DOF_PID_PARAM<float>(0.0,0.0,0.00,0.00000,0.05,-0.05);
-auto *yawRateParam = new TWO_DOF_PID_PARAM<float>(0.02,0.05,0.03,0.000005,0.05,-0.05);
+auto *yawRateParam = new TWO_DOF_PID_PARAM<float>(0.05,0.005,0.005,0.000001,0.05,-0.05);
+//auto *yawRateParam = new TWO_DOF_PID_PARAM<float>(0.2,0.0,0.0,0.00000,0.05,-0.05);
 auto *altitudeParam = new TWO_DOF_PID_PARAM<float>(0,0.1,0,0.05,0.2,-0.2);
 multicopter::ALTITUDE_CONTROL_MODE initialAltitudeControl = multicopter::ALTITUDE_CONTROL_MODE::RELATIVE_THROTTLE;
-multicopter::FRAME_TYPE initialFrameType = multicopter::FRAME_TYPE::QUAD_TOP;
+multicopter::FRAME_TYPE initialFrameType = multicopter::FRAME_TYPE::OCTA;
 float initialBankAngleLim = 30*std::numbers::pi / 180.0;
-float initialBankAcceleLim = 270*std::numbers::pi / 180.0;
+float initialBankAcceleLim = 360*std::numbers::pi / 180.0;
 float initialYawRateLim = 90*std::numbers::pi / 180.0;
 
 //sbus calibration values

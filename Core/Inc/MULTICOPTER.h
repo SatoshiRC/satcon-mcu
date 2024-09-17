@@ -89,7 +89,7 @@ struct PARAMETER{
 };
 
 struct MULTICOPTER {
-	MULTICOPTER(PARAMETER &param, DeltaTime *deltaTimer);
+	MULTICOPTER(Vector3D<MovingAverage<float, 10>*> *smooth_angulerRate,PARAMETER &param, DeltaTime *deltaTimer);
 	void setControlParameter(PARAMETER param){
 		this->_param = param;
 	};
@@ -113,12 +113,14 @@ struct MULTICOPTER {
 
 	std::string getSmoothValue();
 
-	Vector3D<MovingAverage<float, 10>> smooth_angulerRate;
+	Vector3D<MovingAverage<float, 10>*> *smooth_angulerRate;
+	Vector3D<float> refRate;
+
+	TWO_DOF_PID<float> *rollController;
 private:
 	void linarization(std::array<float, 4> &u);
 
 	PARAMETER _param;
-	TWO_DOF_PID<float> *rollController;
 	TWO_DOF_PID<float> *pitchController;
 	TWO_DOF_PID<float> *yawRateController;
 	TWO_DOF_PID<float> *altitudeController;
@@ -127,7 +129,6 @@ private:
 	DeltaTime *deltaTimer;
 	uint64_t elapsedTime;
 	Vector3D<float> angulerVel;
-	Vector3D<float> refRate;
 
 	bool isFrameLost;
 
