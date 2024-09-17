@@ -83,8 +83,8 @@ private:
 	Vector3D<float> accelValue;
 
 	const int16_t SPIN_RATE_LIM = 300/180*std::numbers::pi;
-	const float dcmKiGain = 0.0001;
-	const float dcmKpGain = 0.5;
+	const float dcmKiGain = 0.000;
+	const float dcmKpGain = 0.25;
 
 	bool initialize();
 

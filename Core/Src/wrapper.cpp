@@ -141,6 +141,8 @@ void icm20948Callback(){
 
 	icm20948User.getIMU(accel, gyro);
 
+	const float accelNorm = accel.norm();
+
 	attitudeEstimate.setAccelValue(accel);
 	attitudeEstimate.setGyroValue(gyro);
 	attitudeEstimate.update();
@@ -240,7 +242,8 @@ void icm20948Callback(){
 //	message(std::to_string(int16_t(roll*180/std::numbers::pi))+", "+ std::to_string(int16_t(hmulticopter->smooth_angulerRate[0].getAverage()*180/std::numbers::pi)) + ", " + std::to_string(int16_t(multicopterInput.rollRate*180/std::numbers::pi)) + ", " + std::to_string(int16_t(gyro[0]*180/std::numbers::pi)));
 //	message(std::to_string(int16_t(roll*180/std::numbers::pi))+", "+ std::to_string(int16_t(hmulticopter->smooth_angulerRate[0].getAverage()*180/std::numbers::pi))+", "+);
 //	message(multicopter::to_string(res)+", "+hmulticopter->getCotrolValue(), 3);
-	message(hmulticopter->getRefValue()+", "+hmulticopter->getSmoothValue()+", "+hmulticopter->getCotrolValue()+", "+std::to_string(int16_t(roll*180/std::numbers::pi))+", "+std::to_string(int16_t(pitch*180/std::numbers::pi)),3);
+	message(hmulticopter->getRefValue()+", "+hmulticopter->getCotrolValue()+", "+std::to_string(int16_t(roll*1800/std::numbers::pi))+", "+std::to_string(int16_t(pitch*1800/std::numbers::pi))+", "+std::to_string(int16_t(accelNorm*100)),3);
+//	message(hmulticopter->getCotrolValue()+", "+std::to_string(int16_t(accelNorm*100)),3);
 //	message(hmulticopter->getCotrolValue(), 3);
 //	message(std::to_string(int16_t(	multicopterInput.rollRate*180/std::numbers::pi))+", "+std::to_string(int16_t(multicopterInput.pitchRate*180/std::numbers::pi)));
 //	message(std::to_string(int16_t(yaw*180/std::numbers::pi)));

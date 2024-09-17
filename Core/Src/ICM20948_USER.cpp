@@ -29,7 +29,7 @@ void ICM20948_USER::init(){
 	icm20948->pwrmgmt1(0x01);
 	HAL_Delay(100);
 
-    icm20948->accelConfig(ICM20948::AccelSensitivity::SENS_4G,true,0);
+    icm20948->accelConfig(ICM20948::AccelSensitivity::SENS_4G,true,2);
     icm20948->gyroConfig(ICM20948::GyroSensitivity::SENS_250, true, 0);
 
     uint8_t tmp=3;
