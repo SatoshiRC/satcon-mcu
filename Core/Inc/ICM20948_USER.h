@@ -36,7 +36,7 @@ private:
 	ICM20948_HAL *icm20948;
 	bool __isCalibrated;
 //	Vector3D<double> accelAverage={-0.059056974459725, -0.0230255402750491, -0.0633869208693285};
-	Vector3D<double> accelAverage={-0.1,-0.023,-0.0633};
+	Vector3D<double> accelAverage={-0.04,-0.05,-0.0633};
 	Vector3D<double> gyroAverage={};
 	uint16_t averageCounter;
 };

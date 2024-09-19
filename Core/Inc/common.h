@@ -37,7 +37,12 @@ uint16_t BLUE_LED_CHANNEL=TIM_CHANNEL_3;
 TIM_HandleTypeDef *ledTim = &htim1;
 
 UART_HandleTypeDef *huartSbus = &huart5;
+
+#if USE_XBEE
 UART_HandleTypeDef *huartDebug = &huart2;
+#else
+UART_HandleTypeDef *huartDebug = &huart4;
+#endif
 SBUS_HANDLE hsbus(lower,center, upper);
 
 inline float degToRad(float deg){
@@ -125,5 +130,7 @@ std::array<ESC_UTILITY_SINGLE*, 8> escSingle = {
 	new ESC_UTILITY_SINGLE(&htim3,TIM_CHANNEL_1,1500,3000),
 };
 ESC_UTILITY<8> esc(escSingle);
+
+uint32_t adcValue = 0;
 
 #endif /* INC_COMMON_H_ */

@@ -15,7 +15,7 @@ std::string to_string(OUTPUT arg){
 	for(; n<arg.size()-1; n++){
 		str += std::to_string((int8_t)(arg[n]*100)) + ", ";
 	}
-	str += std::to_string((int8_t)(arg[n]));
+	str += std::to_string((int8_t)(arg[n]*100));
 	return str;
 }
 
@@ -193,7 +193,7 @@ float MULTICOPTER::integrateThrottle(float throttleNorm, float dt){
 		}
 		constraintFloat(element,-1,1);
 
-		throttle_integral += element * dt * 2.0;
+		throttle_integral += element * dt * 1.0;
 	}
 	constraintFloat(throttle_integral,0,1);
 	return throttle_integral;

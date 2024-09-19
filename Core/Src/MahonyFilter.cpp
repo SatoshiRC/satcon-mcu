@@ -14,54 +14,45 @@ MahonyFilter::MahonyFilter(DeltaTime *deltaTimer, Quaternion<float> imuFrame):de
 
 void MahonyFilter::update(){
 	_isInitialized = true;
-	// g[xyz] - gyro reading, in rad/s
-	// useAcc, a[xyz] - accelerometer reading, direction only, normalized internally
-	// headingErrMag - heading error (in earth frame) derived from magnetometter, rad/s around Z axis (* dcmKpGain)
-	// headingErrCog - heading error (in earth frame) derived from CourseOverGround, rad/s around Z axis (* dcmKpGain)
-	// dcmKpGain - gain applied to all error sources
-//	(float dt,
-//	                                float gx, float gy, float gz,
-//	                                bool useAcc, float ax, float ay, float az,
-//	                                float headingErrMag, float headingErrCog,
-//	                                const float dcmKpGain)
-		float dt = deltaTimer->getDelta();
-	    static Vector3D<float> integralFB={};    // integral error terms scaled by Ki
 
-	    // Calculate general spin rate (rad/s)
-	    const float spin_rate = gyroValue.norm();
+	float dt = deltaTimer->getDelta();
+	static Vector3D<float> integralFB={};    // integral error terms scaled by Ki
 
-	    Vector3D<float> error={};
-	    Vector3D<float> omega={};
+	// Calculate general spin rate (rad/s)
+	const float spin_rate = gyroValue.norm();
 
-	    // Use measured acceleration vector
-	    float recipAccNorm = accelValue.norm();
-	    accelValue.normalize();
-	    if (recipAccNorm > 0.01f) {
-	        // Error is sum of cross product between estimated direction and measured direction of gravity
-	    	Vector3D<float> refGravity = attitude.invers().rotateVector({0,0,1});
+	Vector3D<float> error={};
+	Vector3D<float> omega={};
 
-	        error = accelValue.outerProduct(refGravity);
-	    }
+	// Use measured acceleration vector
+	float recipAccNorm = accelValue.norm();
+	accelValue.normalize();
+	if (recipAccNorm > 0.9f && recipAccNorm < 1.1f) {
+		// Error is sum of cross product between estimated direction and measured direction of gravity
+		Vector3D<float> refGravity = attitude.invers().rotateVector({0,0,1});
 
-	    // Compute and apply integral feedback if enabled
-	    if (dcmKiGain > 0.0f) {
-	        // Stop integrating if spinning beyond the certain limit
-	        if (spin_rate < (SPIN_RATE_LIM)) {
-	            integralFB = integralFB - (error*dcmKiGain*dt);// integral error scaled by Ki
-	        }
-	    } else {
-	        integralFB = {0,0,0};
-	    }
+		error = accelValue.outerProduct(refGravity);
+	}
 
-	    // Apply proportional and integral feedback
-	    omega = gyroValue + error*dcmKpGain + integralFB;
+	// Compute and apply integral feedback if enabled
+	if (dcmKiGain > 0.0f) {
+		// Stop integrating if spinning beyond the certain limit
+		if (spin_rate < (SPIN_RATE_LIM)) {
+			integralFB = integralFB - (error*dcmKiGain*dt);// integral error scaled by Ki
+		}
+	} else {
+		integralFB = {0,0,0};
+	}
 
-	    // Integrate rate of change of quaternion
-	    Quaternion qDot = attitude*Quaternion(omega);
-	    attitude = attitude + qDot*0.5*dt;
+	// Apply proportional and integral feedback
+	omega = gyroValue + error*dcmKpGain + integralFB;
 
-	    // Normalise quaternion
-	    attitude.normalize();
+	// Integrate rate of change of quaternion
+	Quaternion qDot = attitude*Quaternion(omega);
+	attitude = attitude + qDot*0.5*dt;
+
+	// Normalise quaternion
+	attitude.normalize();
 
 }
 

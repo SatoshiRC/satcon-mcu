@@ -22,16 +22,16 @@ template<class T>
 T TWO_DOF_PID<T>::controller(T reference, T Din, T Pin, T Iin){
 	float diffTime = deltaTimer->getDelta();
 
-	if((integral + Iin*diffTime)*param.pGain > param.upperControlLimit){
-		integral = param.upperControlLimit / param.pGain;
-	}else if((integral + Iin*diffTime)*param.pGain < param.lowerControlLimit){
-		integral = param.lowerControlLimit / param.pGain;
+	if(param.iGain != 0){
+		if((integral + Iin*diffTime)*param.pGain > param.upperControlLimit){
+			integral = param.upperControlLimit / param.pGain;
+		}else if((integral + Iin*diffTime)*param.pGain < param.lowerControlLimit){
+			integral = param.lowerControlLimit / param.pGain;
+		}else{
+			integral += Iin*diffTime;
+		}
 	}else{
-		integral += Iin*diffTime;
-	}
-
-	if(std::isfinite(integral) == false){
-		integral = 0;
+		integral  = 0;
 	}
 
 	T res = reference * param.ffGain;
