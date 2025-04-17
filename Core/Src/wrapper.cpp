@@ -123,9 +123,9 @@ void loop(){
 		__HAL_TIM_SET_COMPARE(ledTim, BLUE_LED_CHANNEL, 500);
 		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, GPIO_PIN_SET);
 	}else if(hmulticopter->getMainMode() == multicopter::MAIN_MODE::DISARM){
-		__HAL_TIM_SET_COMPARE(ledTim, BLUE_LED_CHANNEL, 0);
+		__HAL_TIM_SET_COMPARE(ledTim, BLUE_LED_CHANNEL, 100);
 	}else{
-		__HAL_TIM_SET_COMPARE(ledTim, BLUE_LED_CHANNEL, 250);
+		__HAL_TIM_SET_COMPARE(ledTim, BLUE_LED_CHANNEL, 400);
 	}
 }
 
@@ -258,7 +258,7 @@ void icm20948Callback(){
 //	message(std::to_string(int16_t(roll*180/std::numbers::pi))+", "+ std::to_string(int16_t(smooth_angulerRate->at(0)->getAverage()*180/std::numbers::pi)) + ", " + std::to_string(int16_t(multicopterInput.rollRate*180/std::numbers::pi)) + ", " + std::to_string(int16_t(gyro[0]*180/std::numbers::pi))+", "+hmulticopter->getCotrolValue());
 //	message(std::to_string(int16_t(roll*180/std::numbers::pi))+", "+ std::to_string(int16_t(hmulticopter->smooth_angulerRate[0].getAverage()*180/std::numbers::pi))+", "+);
 //	message(multicopter::to_string(res)+", "+hmulticopter->getCotrolValue(), 3);
-	message(hmulticopter->getRefValue()+", "+hmulticopter->getSmoothValue() +", " + hmulticopter->getCotrolValue()+", "+std::to_string(int16_t(roll*1800/std::numbers::pi))+", "+std::to_string(int16_t(pitch*1800/std::numbers::pi))+", "+std::to_string(int16_t(accelNorm*100)),3);
+//	message(hmulticopter->getRefValue()+", "+hmulticopter->getSmoothValue() +", " + hmulticopter->getCotrolValue()+", "+std::to_string(int16_t(roll*1800/std::numbers::pi))+", "+std::to_string(int16_t(pitch*1800/std::numbers::pi))+", "+std::to_string(int16_t(accelNorm*100)),3);
 //	message(hmulticopter->getRefValue()+", "+hmulticopter->getCotrolValue()+", "+multicopter::to_string(res));
 //	message(hmulticopter->getCotrolValue()+", "+std::to_string(int16_t(accelNorm*100)),3);
 //	message(hmulticopter->getCotrolValue(), 3);
@@ -280,7 +280,9 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 	if(huart == huartSbus){
 		htim14.Instance->CNT = 0;
+		__HAL_TIM_SET_COMPARE(ledTim, RED_LED_CHANNEL, 300);
 		hsbus.onReceive(multicopterInput);
+
 		if(hsbus.getData().failsafe){
 			hmulticopter->rcFailSafe();
 		}else if(hsbus.getData().framelost){
@@ -295,17 +297,14 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 			return;
 		}
 
-//		esc.setSpeed(hmulticopter->controller(multicopterInput));
-		std::string str;
+		esc.setSpeed(hmulticopter->controller(multicopterInput));
 
-//		for(uint8_t n=0; n<10; n++){
-//			str += std::to_string(hsbus.getData()[n])+", ";
-//		}
+
 //		str= std::to_string(int8_t(multicopterInput.sbusRollNorm*100))+", ";
 //		str += std::to_string(int8_t(multicopterInput.sbusPitchNorm*100))+", ";
 //		str += std::to_string(int8_t(multicopterInput.sbusYawRateNorm*100))+", ";
 //		str += std::to_string(int8_t(multicopterInput.sbusAltitudeNorm*100))+", ";
-//		message(str, 3);
+
 		__HAL_TIM_SET_COMPARE(ledTim, RED_LED_CHANNEL, 500);
 	}else if(huart == huartDebug){
 
