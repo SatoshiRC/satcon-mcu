@@ -1,24 +1,15 @@
-[submodule "Core/Lib/Quaternion"]
-	path = Core/Lib/Quaternion
-	url = git@github.com:SatoshiRC/Quaternion.git
 [submodule "Core/Lib/ICM20948"]
 	path = Core/Lib/ICM20948
 	url = git@github.com:SatoshiRC/ICM20948.git
-[submodule "Core/Lib/ESC_UTILITY"]
-	path = Core/Lib/ESC_UTILITY
-	url = git@github.com:SatoshiRC/ESC_UTILITY_for_STM32.git
 [submodule "Core/Lib/elapsedTimer"]
 	path = Core/Lib/elapsedTimer
 	url = git@github.com:SatoshiRC/elapsedTimer.git
-[submodule "Core/Lib/SBUS"]
-	path = Core/Lib/SBUS
-	url = git@github.com:SatoshiRC/SBUS.git
-[submodule "Core/Lib/Madgwick"]
-	path = Core/Lib/Madgwick
-	url = git@github.com:SatoshiRC/Madgwick.git
 [submodule "Core/Lib/ringBuffer"]
 	path = Core/Lib/ringBuffer
 	url = git@github.com:SatoshiRC/Ring-Buffer.git
 [submodule "Core/Lib/MovingAverage"]
 	path = Core/Lib/MovingAverage
 	url = git@github.com:SatoshiRC/MovingAverage.git
+[submodule "Core/Lib/Vector3D"]
+	path = Core/Lib/Vector3D
+	url = git@github.com:SatoshiRC/Vector3D.git

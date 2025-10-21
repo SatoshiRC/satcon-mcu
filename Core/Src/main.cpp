@@ -99,7 +99,6 @@ int main(void)
   MX_TIM5_Init();
   MX_TIM14_Init();
   MX_TIM3_Init();
-  MX_UART5_Init();
   MX_I2C1_Init();
   MX_UART4_Init();
   MX_I2C2_Init();

@@ -30,15 +30,15 @@ void ICM20948_USER::init(){
 	HAL_Delay(100);
 
     icm20948->accelConfig(ICM20948::AccelSensitivity::SENS_16G,true,1);
-    icm20948->gyroConfig(ICM20948::GyroSensitivity::SENS_250, true, 1);
+    icm20948->gyroConfig(ICM20948::GyroSensitivity::SENS_2000, true, 1);
 
-    uint8_t tmp=3;
+    uint8_t tmp=0;
     icm20948->memWrite(ICM20948::REGISTER::BANK2::GYRO_SMPLRT_DIV, tmp);
-    tmp=4;
+    tmp=0;
     icm20948->memWrite(ICM20948::REGISTER::BANK2::GYRO_CONFIG_2, tmp);
     tmp=0;
     icm20948->memWrite(ICM20948::REGISTER::BANK2::ACCEL_CONFIG_2, tmp);
-    tmp=3;
+    tmp=0;
     icm20948->memWrite(ICM20948::REGISTER::BANK2::ACCEL_SMPLRT_DIV_2, tmp);
     icm20948->changeUserBank(ICM20948::REGISTER::BANK::BANK0);
 
@@ -74,9 +74,8 @@ uint16_t ICM20948_USER::calibration(Vector3D<float> &gyro){
 	return averageCounter;
 }
 
-void ICM20948_USER::getIMU(Vector3D<float> &accel, Vector3D<float> &gyro){
+void ICM20948_USER::getIMU(Vector3D<int16_t> &accel, Vector3D<int16_t> &gyro){
 	icm20948->readIMU();
-	icm20948->getIMU(accel, gyro);
-	accel = accel - accelAverage;
-	gyro = gyro - gyroAverage;
+	accel = icm20948->getRawAccel();
+	gyro = icm20948->getRawGyro();
 }
